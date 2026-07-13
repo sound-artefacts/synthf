@@ -335,7 +335,7 @@ Out.ar(busArray.[1],LeakDC.ar(sig2*env));
 Out.ar(busArray.[2],LeakDC.ar(sig3*env));
 );
 
-Out.kr(~controlBus_1.index,(sig1*env).poll);
+Out.kr(~controlBus_1.index,(sig1*env));
 Out.kr(~controlBus_2.index,(sig1*env));
 Out.kr(~controlBus_3.index,(sig1*env));
 ///comment out the above parentheses and uncomment the below to use the synth on
@@ -531,47 +531,105 @@ Pbind(\instrument, \synth,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
-var size=550,sk=(size/10),w;
-var n=0,m=0,k=0,tx=0,v;
-var lined=10,run=true,x=0,y=0,g=((1+5.sqrt)/2);
+var size=550,sk=(size/10),w,rol=2,sz=0.5,wd=0.5;
+var v1,v2,v3,p1,p2,p3,tx1=0,tx2=0,tx3=0;
+var lined=15,run=true,g=((1+5.sqrt)/2);
 
-w = Window("tws", Rect(50, 50, size, size+150)).front;
+w = Window("tws", Rect(50, 50, size, size+65)).front;
 ~vw = UserView(w, Rect(0,0,size,(size+150)/2)).background_(Color.black);
-v = UserView(w, Rect(0,(size+150)/2,size,(size+150)/2)).background_(Color.black);
+v1 = UserView(w, Rect(0,(size+150)/2,size,(size+150)/8)).background_(Color.black);
+v2 = UserView(w, Rect(0,((size+150)/2)+((size+150)/8),size,((size+150)/8))).background_(Color.black);
+v3 = UserView(w, Rect(0,((size+150)/2)+(((size+150)/8)*2),size,((size+150)/8))).background_(Color.black);
 
-v.drawFunc = {
-Pen.width = 0.25;
-Pen.fillColor = Color.white.alpha_((~controlBus_1.getSynchronous.abs*20).clip(0.1,1.0));
-Pen.strokeColor = Color.white.alpha_((~controlBus_1.getSynchronous.abs*20).clip(0.1,1.0));
-y=0;~point_cloud=[];
-5.do {
-50.do{
-Pen.addOval(Rect.aboutPoint(Point((x-tx).wrap(0,550),y),1,1));
-~point_cloud=~point_cloud++Point((x-tx).wrap(0,550),y);
-x=(x+(100-(100/g))).wrap(0,550);
+v1.drawFunc = {
+var x=0,y=0,n=0,m=0,k=0,t1x;
+Pen.fillColor = Color.white.alpha_(1);
+Pen.strokeColor = Color.white.alpha_(1);
+p1=[];
+50.do {
+5.do{
+t1x=(~controlBus_1.getSynchronous*550);
+Pen.addOval(Rect.aboutPoint(Point((x-tx1+t1x).wrap(0,550),y),sz,sz));
+p1=p1++Point((x-tx1+t1x).wrap(0,550),y);
+y=(y+(10)).wrap(0,50);
 };
-y=(y+(50-(50/g))).wrap(0,50);
+x=(x+(11)).wrap(0,550);
+y=0;
+};
 x=0;
-};
 ////////mesh
 n = 0;m=0;k = 0;
-(~point_cloud.size).do {
+(p1.size).do {
 var m = n + 1;
-(~point_cloud.size - n - 1).do {
-(if(~point_cloud[n].dist(~point_cloud[m]) < lined){Pen.line( ~point_cloud.[n], ~point_cloud.[m])};);
-m=m+1;k=k+1
+(p1.size - n - 1).do {
+Pen.width = (~controlBus_1.getSynchronous).abs*wd;
+(if(p1.[n].dist(p1.[m]) < lined){Pen.line( p1.[n], p1.[m])};);
+m=m+1;k=k+1;
 };n=n+1;
 };
 Pen.fillStroke;
 };
-{ while { run } {v.background_(Color.black);tx = (tx + ~controlBus_1.getSynchronous.abs).wrap(0,550) * 100; v.refresh; (0.01).wait } }.fork(AppClock);
-/*Routine({
-inf.do {
-tx=(tx +~controlBus_1.getSynchronous.abs*10);
-{v.refresh}.defer;
-(0.01).wait;
+{ while { run } {v1.background_(Color.black);tx1 = (tx1 + rol).wrap(0,550); v1.refresh; (0.01).wait } }.fork(AppClock);
+
+v2.drawFunc = {
+var x=0,y=0,n=0,m=0,k=0,t1x;
+Pen.fillColor = Color.white.alpha_(1);
+Pen.strokeColor = Color.white.alpha_(1);
+p2=[];
+50.do {
+5.do{
+t1x=(~controlBus_2.getSynchronous*550);
+Pen.addOval(Rect.aboutPoint(Point((x-tx2+t1x).wrap(0,550),y),sz,sz));
+p2=p2++Point((x-tx2+t1x).wrap(0,550),y);
+y=(y+(10)).wrap(0,50);
 };
-}).play;*/
+x=(x+(11)).wrap(0,550);
+y=0;
+};
+x=0;
+////////mesh
+n = 0;m=0;k = 0;
+(p2.size).do {
+var m = n + 1;
+(p2.size - n - 1).do {
+Pen.width = (~controlBus_2.getSynchronous).abs*wd;
+(if(p2.[n].dist(p2.[m]) < lined){Pen.line( p2.[n], p2.[m])};);
+m=m+1;k=k+1;
+};n=n+1;
+};
+Pen.fillStroke;
+};
+{ while { run } {v2.background_(Color.black);tx2 = (tx2 + rol).wrap(0,550); v2.refresh; (0.01).wait } }.fork(AppClock);
+
+v3.drawFunc = {
+var x=0,y=0,n=0,m=0,k=0,t1x;
+Pen.fillColor = Color.white.alpha_(1);
+Pen.strokeColor = Color.white.alpha_(1);
+p3=[];
+50.do {
+5.do{
+t1x=(~controlBus_3.getSynchronous*550);
+Pen.addOval(Rect.aboutPoint(Point((x-tx3+t1x).wrap(0,550),y),sz,sz));
+p3=p3++Point((x-tx3+t1x).wrap(0,550),y);
+y=(y+(10)).wrap(0,50);
+};
+x=(x+(11)).wrap(0,550);
+y=0;
+};
+x=0;
+////////mesh
+n = 0;m=0;k = 0;
+(p3.size).do {
+var m = n + 1;
+(p3.size - n - 1).do {
+Pen.width = (~controlBus_3.getSynchronous).abs*wd;
+(if(p3.[n].dist(p3.[m]) < lined){Pen.line( p3.[n], p3.[m])};);
+m=m+1;k=k+1;
+};n=n+1;
+};
+Pen.fillStroke;
+};
+{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.01).wait } }.fork(AppClock);
 (
 ~sl1=Knob.new(~vw, Rect.new(50,50,sk, sk)).background_(Color.black).action_({
 arg obj;
@@ -599,9 +657,9 @@ value2=obj.value.linexp(0,1,1,16256/2).round(1).asInteger.postln;
 ~sl3=Knob.new(~vw, Rect.new(250,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,(16256*4).neg,(16256*2)).round(1).asInteger.postln;
+value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
 ~drive=value1;
-value2=obj.value.linlin(0,1,8,1).postln;
+value2=obj.value.linlin(0,1,1,8).postln;
 ~rect=value2;
 });
 ~st3=StaticText(~vw,Rect(250,50+sk,sk,sk)).string_("drive")
@@ -623,7 +681,7 @@ value2=obj.value.linexp(0,1,80,10).postln;
 ~sl5=Knob.new(~vw, Rect.new(450,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linexp(0,1,0.1,8).postln;
+value1=obj.value.linexp(0,1,1,16).postln;
 ~decay=value1;
 value2=obj.value.linexp(0,1,0.01,1).postln;
 ~attack=value2;
