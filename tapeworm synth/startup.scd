@@ -26,14 +26,8 @@ Tdef(\drone, {
 {
 var az1=0,el1=0,az2=0,el2=0,angle=0;
 var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
-var nn=1.neg, n=0;
-var difaz, difel;
-~vertices = 32*32;
-~rotation=0;
-//~tree= Routine({loop{
-~az=[]; ~el=[]; ~cx = [];~cy = [];~cz = [];
-angle=0;
-nn=1.neg; n=0;
+
+~az=[]; ~el=[];
 
 32.do{
     azimuth = 32.collect{
@@ -56,32 +50,75 @@ nn=1.neg; n=0;
     az1=0; el1=0;
     az2=0; el2=0;
 };
+}.value;
+);
+(
+{
+var az1=0,el1=0,az2=0,el2=0,angle=0;
+var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
+var nn=1.neg, n=0;
+var difaz, difel,rx=0,ry=0,rz=0;
+~vertices = 32*32;
+~rotation=0;
+~tree= Routine({loop{
+~azr=[]; ~elr=[]; ~cx = [];~cy = [];~cz = [];
+angle=0;
+nn=1.neg; n=0;
+
+32.do{
+    azimuth = 32.collect{
+        az1 = (az1 + (2pi-(2pi/silver_r))).wrap(pi.neg,pi);
+        el1 = (el1 + (pi-(pi/g))).wrap((pi/2).neg,(pi/2));
+        (az1 + angle).wrap(pi.neg,pi)
+    };
+
+    elevation = 32.collect{
+        az2 = (az2 + (2pi-(2pi/silver_r))).wrap(pi.neg,pi);
+        el2 = (el2 + (pi-(pi/g))).wrap((pi/2).neg,(pi/2));
+        (el2 + angle).wrap((pi/2).neg,(pi/2))
+    };
+
+    angle = (angle + (2pi-(2pi/silver_r))).wrap(pi.neg,pi);
+
+    ~azr = ~azr ++ azimuth;
+    ~elr = ~elr ++ elevation;
+
+    az1=0; el1=0;
+    az2=0; el2=0;
+};
 
 difaz = ~vertices.collect{
     nn = nn + 1;
-    ~az.[nn]
+    ~azr.[nn]
 };
 nn = 1.neg;
 difel = ~vertices.collect{
     nn = nn + 1;
-    ~el.[nn]
+    ~elr.[nn]
 };
 
 ~vertices.do{
 var az, el;
-var x, y, z;
+var x, y, z,rot;
 
 az = difaz.[n];
 el = difel.[n];
-x = cos(el) * cos(az);
-y = cos(el) * sin(az);
-z = sin(el);
+rot=Spherical(1,az,el).rotateYZ(rx).rotateXZ(ry).rotateXY(rz);
+//x = cos(el) * cos(az);
+//y = cos(el) * sin(az);
+//z = sin(el);
+x=rot.x; y=rot.y; z=rot.z;
 ~cx = ~cx ++ x; ~cy = ~cy ++ y; ~cz = ~cz ++ z;
 n = n + 1;
 };
-//(1).wait;
-//};});
-//~tree.play
+(
+rx=(rx +~rotation).wrap(0,2pi);
+ry=(ry +~rotation).wrap(0,2pi);
+rz=(rz +~rotation).wrap(0,2pi);
+);
+(4).wait;
+};});
+~tree.play
 }.value;
 );
 ////envelope sig
@@ -123,7 +160,7 @@ scale1=~note10.collect{nn=nn+1;Scale.minorPentatonic.performDegreeToKey(nn,12)};
 nn=1.neg;
 scale2=~note10.collect{nn=nn+1;Scale.majorPentatonic.performDegreeToKey(nn,12)};
 //~scale10=[scale1,scale2];
-~scale10=[~scale,~scale];
+~scale10=[scale1,scale2];
 }.value;
 );
 );
@@ -133,11 +170,11 @@ scale2=~note10.collect{nn=nn+1;Scale.majorPentatonic.performDegreeToKey(nn,12)};
 SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,
 c=0,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3,4,5,6,7,8],cx=~cx,cy=~cy,cz=~cz,taz=~az,tel=~el;
-var fund,fu=24,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=10;
+busArray = #[0,1,2,3,4,5,6,7,8];
+var fund,fu=16,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=4;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
-var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,xx,yy,zz,envf;
-var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf,px,py,pz,ptheta,pphi;
+var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
+var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
 var vanish=4,dist=1;
@@ -146,12 +183,11 @@ var vanish=4,dist=1;
 
 sustain=0.1;
 key=Select.kr(sb,~scale10);
-
 ////signal envelope
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.new([0,1,0],[0.25,0.5],[4.neg,4.neg]).asSignal(~signalSizee);
+rip = Env.new([0,1,0],[0.25,0.5],[16.neg,4.neg]).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
@@ -169,28 +205,18 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-xx = (~vertices * cos(el) * cos(az)).round(1).asInteger.abs;
-yy = (~vertices * cos(el) * sin(az)).round(1).asInteger.abs;
-zz = (~vertices * sin(el)).round(1).asInteger.abs;
-px=Select.kr(xx,~cx);
-py=Select.kr(yy,~cy);
-pz=Select.kr(zz,~cz);
-
-ptheta=atan2(py,px);
-pphi=atan2(pz,(px.squared+py.squared).sqrt);
-
 ///osc
-mp_x = sc  * cos(pphi) * cos(ptheta);
-mp_y = sc  * cos(pphi) * sin(ptheta);
-mp_z = sc  * sin(pphi);
+mp_x = sc  * cos(el) * cos(az);
+mp_y = sc  * cos(el) * sin(az);
+mp_z = sc  * sin(el);
 
-mps_x = ssc * cos(pphi) * cos(ptheta);
-mps_y = ssc * cos(pphi) * sin(ptheta);
-mps_z = ssc * sin(pphi);
+mps_x = ssc * cos(el) * cos(az);
+mps_y = ssc * cos(el) * sin(az);
+mps_z = ssc * sin(el);
 
-mpf_x =pi* cos(pphi) * cos(ptheta);
-mpf_y =pi* cos(pphi) * sin(ptheta);
-mpf_z =pi* sin(pphi);
+mpf_x =pi* cos(el) * cos(az);
+mpf_y =pi* cos(el) * sin(az);
+mpf_z =pi* sin(el);
 
 b_x=2.pow(mp_x.round(1)/16256);
 b_y=2.pow(mp_y.round(1)/16256);
@@ -276,43 +302,43 @@ sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 (
 a1=a2=a3=a4=1;
 g_ch1=
-(sig1.abs.range(0.001,1)*cos(pphi)*cos(ptheta)*
+(sig1.abs.range(0.001,1)*cos(el)*cos(az)*
  sig1.range(0.001,1)*cos(Select.kr(s1,~el)*a1)*cos(Select.kr(s1,~az)*a1))
 +
-(sig2.abs.range(0.001,1)*cos(pphi)*sin(ptheta)*
+(sig2.abs.range(0.001,1)*cos(el)*sin(az)*
  sig2.range(0.001,1)*cos(Select.kr(s1,~el)*a1)*sin(Select.kr(s1,~az)*a1))
 +
-(sig3.abs.range(0.001,1)*sin(pphi)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(Select.kr(s1,~el)*a1));
 
 g_ch2=
-(sig1.abs.range(0.001,1)*cos(pphi)*cos(ptheta)*
+(sig1.abs.range(0.001,1)*cos(el)*cos(az)*
  sig1.range(0.001,1)*cos(Select.kr(s2,~el)*a2)*cos(Select.kr(s2,~az)*a2))
 +
-(sig2.abs.range(0.001,1)*cos(pphi)*sin(ptheta)*
+(sig2.abs.range(0.001,1)*cos(el)*sin(az)*
  sig2.range(0.001,1)*cos(Select.kr(s2,~el)*a2)*sin(Select.kr(s2,~az)*a2))
 +
-(sig3.abs.range(0.001,1)*sin(pphi)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(Select.kr(s2,~el)*a2));
 
 g_ch3=
-(sig1.abs.range(0.001,1)*cos(pphi)*cos(ptheta)*
+(sig1.abs.range(0.001,1)*cos(el)*cos(az)*
  sig1.range(0.001,1)*cos(Select.kr(s3,~el)*a3)*cos(Select.kr(s3,~az)*a3))
 +
-(sig2.abs.range(0.001,1)*cos(pphi)*sin(ptheta)*
+(sig2.abs.range(0.001,1)*cos(el)*sin(az)*
  sig2.range(0.001,1)*cos(Select.kr(s3,~el)*a3)*sin(Select.kr(s3,~az)*a3))
 +
-(sig3.abs.range(0.001,1)*sin(pphi)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(Select.kr(s3,~el)*a3));
 
 g_ch4=
-(sig1.abs.range(0.001,1)*cos(pphi)*cos(ptheta)*
+(sig1.abs.range(0.001,1)*cos(el)*cos(az)*
  sig1.range(0.001,1)*cos(Select.kr(s4,~el)*a4)*cos(Select.kr(s4,~az)*a4))
 +
-(sig2.abs.range(0.001,1)*cos(pphi)*sin(ptheta)*
+(sig2.abs.range(0.001,1)*cos(el)*sin(az)*
  sig2.range(0.001,1)*cos(Select.kr(s4,~el)*a4)*sin(Select.kr(s4,~az)*a4))
 +
-(sig3.abs.range(0.001,1)*sin(pphi)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(Select.kr(s4,~el)*a4));
 );
 
@@ -323,8 +349,8 @@ Out.ar(busArray.[2],LeakDC.ar(sig3*env));
 );
 
 Out.kr(~controlBus_1.index,(sig1*env));
-Out.kr(~controlBus_2.index,(sig1*env));
-Out.kr(~controlBus_3.index,(sig1*env));
+Out.kr(~controlBus_2.index,(sig2*env));
+Out.kr(~controlBus_3.index,(sig3*env));
 ///comment out the above parentheses and uncomment the below to use the synth on
 ///threefold speaker wavefield quad spat (12ch)/// to puput stereo sets (x,y) not use z channel as ouput (2,5,etc), sig3.
 /*(
@@ -465,7 +491,8 @@ rhythm.do{ durz=durz++dz.[n]; n=n+1;}; n=1;
 durx2=[dx.[4]]++durx1.reverse;
 dury2=[dy.[4]]++dury1.reverse;
 durz2=[dz.[4]]++durz1.reverse;
-~dur=~dur++durx++dury++durz++durx2++dury2++durz2;
+//~dur=~dur++durx++dury++durz++durx2++dury2++durz2;
+~dur=~dur++durx++dury++durz;
 }.value);
 ({
 var dict = IdentityDictionary[\A -> "AB", \B -> "A"];
@@ -487,21 +514,38 @@ word.do({|i| ~lseq = ~lseq ++ dictnotes[i.asSymbol];});
 }.value);
 ~gain=1;~drive=0;~c=0;~attack=0.01;~decay=1;~s_size=1;~lowend=20;~room=0;
 ~incr1=0;~incr2=0;~sc=1;~gold=((1+5.sqrt)/2);~silver=(1+2.sqrt);
-~incr=0;~ssc=26;~mix=0;~rect=16;~s=0;
-~alternating=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];
+~incr=0;~ssc=26;~mix=0;~rect=16;~s=0;~azimuth=0;~elevation=0;
+~alternating=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];~hor=0;~lat=0;
 //~seq= Pseq([~dur.[0],Rest(~dur.[13.rand]),~dur.[1],Rest(~dur.[13.rand]),~dur.[2],Rest(~dur.[13.rand]),~dur.[3]] ,inf);
 TempoClock.default.tempo_(0.01);
-~timbr_dur=8;
-
-/*(
+~timbr_dur=0.01;
+(
 {
 Routine({loop{
-	~s=~vertices.rand;
-        (~timbr_dur).wait; // frame duration
+	~hor=(~hor+~incr1).wrap(pi.neg, pi);
+	~lat=(~lat+~incr2).wrap(0.5pi.neg, 0.5pi);
+(~timbr_dur).wait; // frame duration
 };
 }).play;
 }.defer
-);*/
+);
+(
+{
+var x,y,z,px,py,pz;
+Routine({loop{
+x = Spherical(~vertices-1,~hor,~lat).x.round(1).asInteger.abs;
+y = Spherical(~vertices-1,~hor,~lat).y.round(1).asInteger.abs;
+z = Spherical(~vertices-1,~hor,~lat).z.round(1).asInteger.abs;
+px=~cx.[x];
+py=~cy.[y];
+pz=~cz.[z];
+~azimuth=Cartesian(px,py,pz).theta;
+~elevation=Cartesian(px,py,pz).phi;
+(~timbr_dur).wait; // frame duration
+};
+}).play;
+}.defer
+);
 
 ~pattern = Pdef(\1,
 Pbind(\instrument, \synth,
@@ -509,8 +553,7 @@ Pbind(\instrument, \synth,
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\timbre,Pfunc{~s},
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating*~lseq,inf),
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},
-\az, Pseries(0, Pfunc{~incr1}, inf).collect(_.wrap(pi.neg, pi)),
-\el, Pseries(0, Pfunc{~incr2}, inf).collect(_.wrap(0.5pi.neg, 0.5pi)),
+\az, Pfunc{~azimuth},\el,Pfunc{~elevation},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attack }, \dicay, Pfunc { ~decay }, \ssc, Pfunc{~ssc};
@@ -520,7 +563,7 @@ Pbind(\instrument, \synth,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
-var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=2;
+var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=4;
 var v1,v2,v3,p1,p2,p3,tx1=0,tx2=0,tx3=0;
 var lined=15,run=true,g=((1+5.sqrt)/2);
 
@@ -537,7 +580,7 @@ Pen.strokeColor = Color.white.alpha_(1);
 p1=[];
 50.do {
 5.do{
-t1x=(~controlBus_1.getSynchronous*550);
+t1x=(~controlBus_1.getSynchronous*250);
 Pen.addOval(Rect.aboutPoint(Point((x-tx1+t1x).wrap(0,550),y),sz,sz));
 p1=p1++Point((x-tx1+t1x).wrap(0,550),y);
 y=(y+(10)).wrap(0,50);
@@ -568,7 +611,7 @@ Pen.strokeColor = Color.white.alpha_(1);
 p2=[];
 50.do {
 5.do{
-t1x=(~controlBus_2.getSynchronous*550);
+t1x=(~controlBus_2.getSynchronous*250);
 Pen.addOval(Rect.aboutPoint(Point((x-tx2+t1x).wrap(0,550),y),sz,sz));
 p2=p2++Point((x-tx2+t1x).wrap(0,550),y);
 y=(y+(10)).wrap(0,50);
@@ -599,7 +642,7 @@ Pen.strokeColor = Color.white.alpha_(1);
 p3=[];
 50.do {
 5.do{
-t1x=(~controlBus_3.getSynchronous*550);
+t1x=(~controlBus_3.getSynchronous*250);
 Pen.addOval(Rect.aboutPoint(Point((x-tx3+t1x).wrap(0,550),y),sz,sz));
 p3=p3++Point((x-tx3+t1x).wrap(0,550),y);
 y=(y+(10)).wrap(0,50);
@@ -636,8 +679,8 @@ TempoClock.default.tempo_(value);
 ~sl2=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,4,32).round(1/64).postln;
-~rotation=2pi/value;
+value=obj.value.linexp(0,1,0.000001.degrad,2pi-(2pi/~silver)).postln;
+~rotation=value;
 });
 ~st2=StaticText(~vw,Rect(150,50+sk,sk,sk)).string_("timbre")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',10));
