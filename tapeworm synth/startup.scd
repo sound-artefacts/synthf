@@ -305,7 +305,7 @@ sig3=sig3*mp_z.sign;
 /////compresion
 sig1=HPF.ar(sig1,lowend);
 sig2=HPF.ar(sig2, lowend);
-//sig3=HPF.ar(sig3, lowend);
+sig3=HPF.ar(sig3, lowend);
 threshold=(((343/s_size)/fund).reciprocal.ampdb/2.sqrt).dbamp;
 sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
