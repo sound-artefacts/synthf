@@ -350,20 +350,20 @@ az7=0;el7=0;az6=0;el6=0;
 );
 (
 ~magxb = ~magx.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+theta = ~azr[i];
+phi = ~elr[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
 ~magyb = ~magy.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+theta = ~azr[i];
+phi = ~elr[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
 ~magzb = ~magz.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+theta = ~azr[i];
+phi = ~elr[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
@@ -728,8 +728,8 @@ var m3=1.neg,n=0,bank=5,rhythm=4,time=32.reciprocal,beat=1;
 var durx=[],dury=[],durz=[],durx1=[],dury1=[],durz1=[];
 var dx=[],dy=[],dz=[],bx,by,bz,durx2,dury2,durz2,dur=[],dur1=[],dur2;
 
-~azrr=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
-~elrr=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
+~azr=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
+~elr=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
 ~r=0;~r1=0;~r2=0;
 
 ~dur=[];
@@ -781,23 +781,25 @@ dur2=[((dx.[4]*dz.[4])+(dy.[4]*dz.[4]))]++dur1.reverse;
 }.value)*/
 ({
 var m1=1.neg, m2=1.neg;
-var m3=1.neg,n=0,bank=5,rhythm=4,time=32.reciprocal,beat=1;
+var m3=1.neg,n=0,bank=4,rhythm=4,time=32.reciprocal,beat=1;
 var durx=[],dury=[],durz=[],durx1=[],dury1=[],durz1=[];
 var dx=[],dy=[],dz=[],bx,by,bz,durx2,dury2,durz2;
 
-~azr=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
-~elr=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
-~r=0;~r1=0;~r2=0;
+(
+~azrth=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
+~elrth=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
+);
+
 
 ~dur=[];
 
 bank.do{
-    m1=m2=m3=~vertices.rand;
-
+   // m1=m2=m3=~vertices.rand;
+m1=m1+1;m2=m2+1;m3=m3+1;
     bx=1.collect{
         var az, el, x, y, z;
-        az = ~az.[m1];
-        el = ~el.[m1];
+        az = ~azrth.[m1];
+        el = ~elrth.[m1];
         x = beat * cos(el) * cos(az);
         y = beat * cos(el) * sin(az);
         z = beat * sin(el);
@@ -805,8 +807,8 @@ bank.do{
 
    by=1.collect{
         var az, el, x, y, z;
-        az = ~az.[m2];
-        el = ~el.[m2];
+        az = ~azrth.[m2];
+        el = ~elrth.[m2];
         x = beat * cos(el) * cos(az);
         y = beat * cos(el) * sin(az);
         z = beat * sin(el);
@@ -814,20 +816,20 @@ bank.do{
 
     bz=1.collect{
         var az, el, x, y, z;
-        az = ~az.[m3];
-        el = ~el.[m3];
+        az = ~azrth.[m3];
+        el = ~elrth.[m3];
         x = beat * cos(el) * cos(az);
         y = beat * cos(el) * sin(az);
         z = beat * sin(el);
         2.pow(z).round(time)};
 
-    m1=1.neg; m2=1.neg; m3=1.neg;
+   // m1=1.neg; m2=1.neg; m3=1.neg;
 
     dx=dx++bx;
     dy=dy++by;
     dz=dz++bz;
 
-    bx=[]; by=[]; bz=[];
+   // bx=[]; by=[]; bz=[];
 };
 
 n=0;
@@ -1085,7 +1087,7 @@ value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sl4=Knob.new(~vw, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256/2).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,16256).round(1).asInteger.postln;
 ~sc=value2;
 });
 ~st4=StaticText(~vw,Rect(350,50+sk,sk,sk)).string_("t_range")
@@ -1265,3 +1267,76 @@ value=obj.value.linlin(0,1,0,pi).postln;
 
 
 
+
+/////space symmetric, for music keys, timbre or vbap
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////spaces
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////tetrahedron
+(
+~azimuth=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
+~elevation=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
+);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////cube
+(
+~azimuth=[45.degrad,135.degrad,45.neg.degrad,135.neg.degrad,45.degrad,135.degrad,45.neg.degrad,135.neg.degrad];
+~elevation=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad,35.264390.degrad,35.264390.degrad];
+)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////octahedron
+(
+~azimuth=[0.degrad,0.degrad,90.degrad,180.degrad,90.neg.degrad,0.degrad];
+~elevation=[90.neg.degrad,0.degrad,0.degrad,0.degrad,0.degrad,90.degrad];
+)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////icosahedron
+(
+~azimuth=[90.degrad,90.neg.degrad,0.degrad,180.degrad,58.28.degrad,121.72.degrad,121.72.neg.degrad,58.neg.degrad,90.degrad,90.neg.degrad,0.degrad,180.degrad];
+~elevation=[58.28.neg.degrad,58.28.neg.degrad,31.72.neg.degrad,31.72.neg.degrad,0.degrad,0.degrad,0.degrad,0.degrad,58.28.degrad,58.28.degrad,31.72.degrad,31.72.degrad];
+)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////dodecahedron
+(
+~azimuth=[45.degrad,135.neg.degrad,135.degrad,45.neg.degrad,90.degrad,90.neg.degrad,0.degrad,180.degrad,45.degrad,135.neg.degrad,135.degrad,45.neg.degrad,90.degrad,
+	90.neg.degrad,69.09.degrad,110.91.degrad,110.91.neg.degrad,69.09.neg.degrad,0.degrad,180.degrad];
+
+~elevation=[35.26.neg.degrad,35.26.neg.degrad,35.26.neg.degrad,35.26.neg.degrad,69.09.neg.degrad,69.09.neg.degrad,20.91.neg.degrad,20.91.neg.degrad,
+	35.26.degrad,35.26.degrad,35.26.degrad,35.26.degrad,69.09.degrad,69.09.degrad,0.degrad,0.degrad,0.degrad,0.degrad,20.91.degrad,20.91.degrad]
+)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Rhombic dodecahedron
+(
+~azimuth=[0.degrad,45.degrad,135.neg.degrad,135.degrad,45.neg.degrad,0.degrad,180.degrad,90.degrad,90.neg.degrad,0.degrad,
+	45.degrad,135.neg.degrad,135.degrad,45.neg.degrad];
+~elevation=[90.neg.degrad,35.264390.neg.degrad,35.264390.neg.degrad,35.264390.neg.degrad,35.264390.neg.degrad,0.degrad
+	,0.degrad,0.degrad,0.degrad,90.degrad,35.264390.degrad,35.264390.degrad,35.264390.degrad,35.264390.degrad];
+)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////cuboctahedron
+(
+~azimuth=[0.degrad,90.degrad,180.degrad,90.neg.degrad,45.degrad,135.degrad,45.neg.degrad,135.neg.degrad,
+	0.degrad,90.degrad,180.degrad,90.neg.degrad];
+~elevation=[45.neg.degrad,45.neg.degrad,45.neg.degrad,45.neg.degrad,0.degrad,0.degrad,0.degrad,0.degrad,
+	45.degrad,45.degrad,45.degrad,45.degrad];
+)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Rhombic Triacontahedron
+(
+~azimuth=[0.degrad,0.degrad,72.degrad,144.degrad,144.neg.degrad,72.neg.degrad,36.degrad,108.degrad,180.degrad,108.neg.degrad,36.neg.degrad,
+	0.degrad,72.degrad,144.degrad,144.neg.degrad,72.neg.degrad,36.degrad,108.degrad,180.degrad,108.neg.degrad,36.neg.degrad,
+	0.degrad,72.degrad,144.degrad,144.neg.degrad,72.neg.degrad,36.degrad,108.degrad,180.degrad,108.neg.degrad,36.neg.degrad,0.degrad];
+
+~elevation=[90.neg.degrad,52.6.neg.degrad,52.6.neg.degrad,52.6.neg.degrad,52.6.neg.degrad,52.6.neg.degrad,26.6.neg.degrad,26.6.neg.degrad,26.6.neg.degrad,26.6.neg.degrad,26.6.neg.degrad,10.8.neg.degrad,10.8.neg.degrad,10.8.neg.degrad,10.8.neg.degrad,10.8.neg.degrad,52.6.degrad,52.6.degrad,52.6.degrad,52.6.degrad,52.6.degrad,26.6.degrad,26.6.degrad,26.6.degrad,26.6.degrad,26.6.degrad,10.8.degrad,10.8.degrad,10.8.degrad,10.8.degrad,10.8.degrad,90.degrad];
+
+)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////icosidodecahedron
+(
+~azimuth=[18.degrad,90.degrad,162.degrad,126.neg.degrad,54.neg.degrad,54.degrad,126.degrad,162.neg.degrad,90.neg.degrad,18.neg.degrad,
+	0.degrad,36.degrad,72.degrad,108.degrad,144.degrad,180.degrad,144.neg.degrad,108.neg.degrad,72.neg.degrad,36.neg.degrad,
+	54.degrad,126.degrad,162.neg.degrad,90.neg.degrad,18.neg.degrad,18.degrad,90.degrad,162.degrad,126.neg.degrad,54.neg.degrad];
+
+~elevation=[58.283.degrad,58.283.degrad,58.283.degrad,58.283.degrad,58.283.degrad,58.283.neg.degrad,58.283.neg.degrad,58.283.neg.degrad,58.283.neg.degrad,58.283.neg.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,0.degrad,
+37.717.degrad,37.717.degrad,37.717.degrad,37.717.degrad,37.717.degrad,37.717.neg.degrad,37.717.neg.degrad,37.717.neg.degrad,37.717.neg.degrad,37.717.neg.degrad];
+)*/
