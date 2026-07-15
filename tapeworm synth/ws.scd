@@ -450,7 +450,7 @@ scale2=~note10.collect{nn=nn+1;Scale.majorPentatonic.performDegreeToKey(nn,12)};
 /////////////////////////////////////////////////////////////////////////////////////////////////////sound
 (
 SynthDef.new(\synth,{
-arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,
+arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,mag2=1,
 c=0,az=0,el=0,az1=0,el1=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3,4,5,6,7,8];
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=4;
@@ -489,21 +489,21 @@ fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
 ///osc
-mp_x = sc  * cos(el) * cos(az);
-mp_y = sc  * cos(el) * sin(az);
-mp_z = sc  * sin(el);
+mp_x = (sc*mag1)  * cos(el) * cos(az);
+mp_y = (sc*mag1)  * cos(el) * sin(az);
+mp_z = (sc*mag1)  * sin(el);
 
-mp_x1 = sc  * cos(el1) * cos(az1);
-mp_y1 = sc  * cos(el1) * sin(az1);
-mp_z1 = sc  * sin(el1);
+mp_x1 = (sc*mag2)  * cos(el1) * cos(az1);
+mp_y1 = (sc*mag2)  * cos(el1) * sin(az1);
+mp_z1 = (sc*mag2)  * sin(el1);
 
-mps_x = ssc * cos(el) * cos(az);
-mps_y = ssc * cos(el) * sin(az);
-mps_z = ssc * sin(el);
+mps_x = (ssc*mag1) * cos(el) * cos(az);
+mps_y = (ssc*mag1) * cos(el) * sin(az);
+mps_z = (sc*mag1) * sin(el);
 
-mps_x1 = ssc * cos(el1) * cos(az1);
-mps_y1 = ssc * cos(el1) * sin(az1);
-mps_z1 = ssc * sin(el1);
+mps_x1 = (ssc*mag2) * cos(el1) * cos(az1);
+mps_y1 = (ssc*mag2) * cos(el1) * sin(az1);
+mps_z1 = (ssc*mag2) * sin(el1);
 
 mpf_x =pi* cos(el) * cos(az);
 mpf_y =pi* cos(el) * sin(az);
@@ -687,13 +687,13 @@ g_ch4=
 (
 Out.ar(busArray.[0],LeakDC.ar(sig1*env));
 Out.ar(busArray.[1],LeakDC.ar(sig2*env));
-Out.ar(busArray.[0],LeakDC.ar(sig3*env)!2);
+Out.ar(busArray.[2],LeakDC.ar(sig3*env));
 );
-/*(
+(
 Out.ar(busArray.[0],LeakDC.ar(sig4*env));
 Out.ar(busArray.[1],LeakDC.ar(sig5*env));
-Out.ar(busArray.[0],LeakDC.ar(sig6*env)!2);
-)*/
+Out.ar(busArray.[2],LeakDC.ar(sig6*env));
+);
 Out.kr(~controlBus_1.index,(sig1*env));
 Out.kr(~controlBus_2.index,(sig2*env));
 Out.kr(~controlBus_3.index,(sig3*env));
@@ -864,7 +864,7 @@ word.do({|i| ~lseq = ~lseq ++ dictnotes[i.asSymbol];});
 ~gain=1;~drive=0;~c=0;~attack=0.01;~decay=1;~s_size=1;~lowend=20;~room=0;
 ~incr1=0;~incr2=0;~sc=1;~gold=((1+5.sqrt)/2);~silver=(1+2.sqrt);
 ~incr=0;~ssc=26;~mix=0;~rect=16;~s=0;~azimuth=0;~elevation=0;~azimuth1=0;~elevation1=0;
-~alternating=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];~hor=0;~lat=0;
+~alternating=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];~hor=0;~lat=0;~shape1=1;~shape2=1;
 //~seq= Pseq([~dur.[0],Rest(~dur.[13.rand]),~dur.[1],Rest(~dur.[13.rand]),~dur.[2],Rest(~dur.[13.rand]),~dur.[3]] ,inf);
 ~tempo=1;
 TempoClock.default.tempo_(1);
@@ -878,10 +878,12 @@ Routine({loop{
 }).play;
 }.defer
 )*/
-~c_az=0;
-~c_el=0.5pi.rand2;
-~c_az1=0.5pi;
-~c_el1=0.5pi.rand2;
+//~c_az=0;
+//~c_el=0.5pi.rand2;
+//~c_az1=0.5pi;
+//~c_el1=0.5pi.rand2;
+~nn1=~set.rand;
+~nn2=~set.rand;
 (
 {
 var x,y,z,px,py,pz,x1,y1,z1,px1,py1,pz1;
@@ -889,18 +891,24 @@ Routine({loop{
 //x = Spherical(~vertices-1,~hor,~lat).x.round(1).asInteger.abs;
 //y = Spherical(~vertices-1,~hor,~lat).y.round(1).asInteger.abs;
 //z = Spherical(~vertices-1,~hor,~lat).z.round(1).asInteger.abs;
-x = Spherical(~set-1,~c_az,~c_el).x.round(1).asInteger.abs;
-y = Spherical(~set-1,~c_az,~c_el).y.round(1).asInteger.abs;
-z = Spherical(~set-1,~c_az,~c_el).z.round(1).asInteger.abs;
-x1 = Spherical(~set-1,~c_az1,~c_el1).x.round(1).asInteger.abs;
-y1 = Spherical(~set-1,~c_az1,~c_el1).y.round(1).asInteger.abs;
-z1 = Spherical(~set-1,~c_az1,~c_el1).z.round(1).asInteger.abs;
+//x = Spherical(~set-1,~c_az,~c_el).x.round(1).asInteger.abs;
+//y = Spherical(~set-1,~c_az,~c_el).y.round(1).asInteger.abs;
+//z = Spherical(~set-1,~c_az,~c_el).z.round(1).asInteger.abs;
+//x1 = Spherical(~set-1,~c_az1,~c_el1).x.round(1).asInteger.abs;
+//y1 = Spherical(~set-1,~c_az1,~c_el1).y.round(1).asInteger.abs;
+//z1 = Spherical(~set-1,~c_az1,~c_el1).z.round(1).asInteger.abs;
+x=y=z=~nn1;
+x1=y1=z1=~nn2;
 px=~cx.[x];
 py=~cy.[y];
 pz=~cz.[z];
 px1=~cx.[x1];
 py1=~cy.[y1];
 pz1=~cz.[z1];
+~shape1=1;
+~shape2=1;
+//~shape1=(Cartesian(~magx.[x],~magy.[x],~magz.[x]).rho/(2.sqrt));
+//~shape2=(Cartesian(~magx.[x1],~magy.[x1],~magz.[x1]).rho/(2.sqrt));
 ~azimuth=Cartesian(px,py,pz).theta;
 ~elevation=Cartesian(px,py,pz).phi;
 ~azimuth1=Cartesian(px1,py1,pz1).theta;
@@ -916,7 +924,7 @@ Pbind(\instrument, \synth,
 \dur, Pseq(~dur ,inf),\s_size,Pfunc { ~s_size }, \lowend,Pfunc { ~lowend }, \room,Pfunc { ~room },
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\timbre,Pfunc{~s},
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating*~lseq,inf),
-\c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},
+\c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},\mag2,Pfunc{~shape2},
 \az, Pfunc{~azimuth},\el,Pfunc{~elevation},\az1, Pfunc{~azimuth1},\el1,Pfunc{~elevation1},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
