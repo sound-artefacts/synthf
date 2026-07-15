@@ -56,7 +56,7 @@ var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 ~vertices = 32*32;
 ~count=[1,1,5,5,5,5];
 ~set=(~count.[0]*~count.[1]*~count.[2]*~count.[3]*~count.[4]*~count.[5]);
-~fuse1=1;~fuse2=1;~harm=1;~mod=0;~fuse=100;
+~fuse1=1;~fuse2=1;~harm=1;~mod=0;~fuse=1000;
 ({
 var pla=0,az=0,el=0;
 var sph,mag,r,run = true;
@@ -453,7 +453,7 @@ SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,mag2=1,
 c=0,az=0,el=0,az1=0,el1=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3,4,5,6,7,8];
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=4;
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=2;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,freq11,freq21,freq31,amp11,amp21,amp31;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
 var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf;
@@ -465,12 +465,12 @@ var c4,c5,c6,sig5,sig4,sig6;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
-sustain=0.1;
+sustain=0.01;
 ////signal envelope
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.new([0,1,0],[0.25,0.5],[4.neg,1]).asSignal(~signalSizee);
+rip = Env.new([0,1,0],[0.25,0.5],[4.neg,2]).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
@@ -925,7 +925,7 @@ pz1=~cz.[z1];
 Pbind(\instrument, \synth,
 \dur, Pseq(~dur ,inf),\s_size,Pfunc { ~s_size }, \lowend,Pfunc { ~lowend }, \room,Pfunc { ~room },
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\timbre,Pfunc{~s},
-\au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating*~lseq,inf),
+\au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating,inf),
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},\mag2,Pfunc{~shape2},
 \az, Pfunc{~azimuth},\el,Pfunc{~elevation},\az1, Pfunc{~azimuth1},\el1,Pfunc{~elevation1},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
@@ -1250,8 +1250,11 @@ value=obj.value.linlin(0,1,1,4).round(1).postln;
 (
 ~sl20=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
-var value;
+var value,v;
 value=obj.value.linlin(0,1,0,pi).postln;
+v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
+~nn1=v;
+~nn2=~nn1.rand;
 ~mod=value;
 });
 ~sl20=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("~mod")
