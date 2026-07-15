@@ -453,7 +453,7 @@ SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,mag2=1,
 c=0,az=0,el=0,az1=0,el1=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3,4,5,6,7,8];
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=2;
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=8;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,freq11,freq21,freq31,amp11,amp21,amp31;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
 var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf;
@@ -470,7 +470,7 @@ sustain=0.01;
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.new([0,1,0],[0.25,0.5],[4.neg,2]).asSignal(~signalSizee);
+rip = Env.perc(0.1,10).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
@@ -478,7 +478,7 @@ attackLen = (peak / 2).floor;
 sustainLen = peak - attackLen;
 decayLen = signal.size - peak - 1;
 times =Array.fill(attackLen, attack / attackLen)
- ++ Array.fill(sustainLen, sustain / sustainLen)
+// ++ Array.fill(sustainLen, sustain / sustainLen)
  ++ Array.fill(decayLen, dicay / decayLen);
 enva = Env(rip.asArray, times);
 env = EnvGen.ar(enva,doneAction:2)*gain;
@@ -850,7 +850,7 @@ var dict = IdentityDictionary[\A -> "AB", \B -> "A"];
 //These are the production rules of the L-system
 var word = "A";
 var string_temp = "";
-var iter = 7;
+var iter = 5;
 //These are diction for the mapping of the alphabet to "artistic" parameters: degrees in a scale, beat occurrence, etc.
 var dictnotes = IdentityDictionary[\A ->0, \B -> 1];  ///amount of 0 in A (array), is the value of Rest(A) for silent events, eg. if A=[0,0,0] then Rest(3)
  ~lseq=[];
@@ -937,9 +937,9 @@ Pbind(\instrument, \synth,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
-var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=5,shift=1;
+var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=20,shift=1;
 var v1,v2,v3,p1,p2,p3,tx1=2,tx2=2,tx3=2;
-var lined=50,run=true,g=((1+5.sqrt)/2);
+var lined=40,run=true,g=((1+5.sqrt)/2);
 
 w = Window("tws", Rect(50, 50, size, 850)).front;
 ~vw = UserView(w, Rect(0,0,size,size)).background_(Color.black);
