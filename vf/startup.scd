@@ -728,8 +728,8 @@ var m3=1.neg,n=0,bank=5,rhythm=4,time=32.reciprocal,beat=1;
 var durx=[],dury=[],durz=[],durx1=[],dury1=[],durz1=[];
 var dx=[],dy=[],dz=[],bx,by,bz,durx2,dury2,durz2,dur=[],dur1=[],dur2;
 
-~azr=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
-~elr=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
+~azrr=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
+~elrr=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
 ~r=0;~r1=0;~r2=0;
 
 ~dur=[];
