@@ -456,7 +456,7 @@ SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,pan=1,
 c=0,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3,4,5,6,7,8,9,10,11];
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=8;
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=8;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
 var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf;
@@ -466,24 +466,17 @@ var vanish=4,dist=(2/3);
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
-sustain=0.01;
-////signal envelope
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.perc(1,10).asSignal(~signalSizee);
+rip = Env.perc(0.5,0.5).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
-attackLen = (peak / 2).floor;
-sustainLen = peak - attackLen;
-decayLen = signal.size - peak - 1;
-times =Array.fill(attackLen, attack / attackLen)
-// ++ Array.fill(sustainLen, sustain / sustainLen)
- ++ Array.fill(decayLen, dicay / decayLen);
+times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dicay / (signal.size - peak - 1));
 enva = Env(rip.asArray, times);
-//env = EnvGen.ar(enva,doneAction:2)*gain;
-env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
+env = EnvGen.ar(enva,doneAction:2)*gain;
+
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
@@ -669,7 +662,7 @@ SynthDef.new(\synthb,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,pan=1,
 c=0,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3,4,5,6,7,8,9,10,11];
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,sustain,tremolo=8;
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=8;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
 var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf;
@@ -679,24 +672,16 @@ var vanish=4,dist=(2/3);
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
-sustain=0.01;
-////signal envelope
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.perc(1,10).asSignal(~signalSizee);
+rip = Env.perc(0.5,0.5).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
-attackLen = (peak / 2).floor;
-sustainLen = peak - attackLen;
-decayLen = signal.size - peak - 1;
-times =Array.fill(attackLen, attack / attackLen)
-// ++ Array.fill(sustainLen, sustain / sustainLen)
- ++ Array.fill(decayLen, dicay / decayLen);
+times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dicay / (signal.size - peak - 1));
 enva = Env(rip.asArray, times);
-//env = EnvGen.ar(enva,doneAction:2)*gain;
-env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
+env = EnvGen.ar(enva,doneAction:2)*gain;
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
