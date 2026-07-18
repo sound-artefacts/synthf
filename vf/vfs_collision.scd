@@ -471,7 +471,7 @@ sustain=0.01;
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.perc(0.1,10).asSignal(~signalSizee);
+rip = Env.perc(1,10).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
@@ -482,8 +482,8 @@ times =Array.fill(attackLen, attack / attackLen)
 // ++ Array.fill(sustainLen, sustain / sustainLen)
  ++ Array.fill(decayLen, dicay / decayLen);
 enva = Env(rip.asArray, times);
-env = EnvGen.ar(enva,doneAction:2)*gain;
-//env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
+//env = EnvGen.ar(enva,doneAction:2)*gain;
+env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
@@ -570,9 +570,9 @@ sig3=(sig3*mix.linlin(0,1,0.1,2)).softclip;
 
 
 //////propagation
-//sig1=sig1*mp_x.sign;
-//sig2=sig2*mp_y.sign;
-//sig3=sig3*mp_z.sign;
+sig1=sig1*mp_x.sign;
+sig2=sig2*mp_y.sign;
+sig3=sig3*mp_z.sign;
 
 ///spectral compensation
 //sig1=BRF.ar(c1,freq1/2,heavy);
@@ -684,7 +684,7 @@ sustain=0.01;
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
 peak = signal.abs.maxIndex.max(1);
-rip = Env.perc(0.1,10).asSignal(~signalSizee);
+rip = Env.perc(1,10).asSignal(~signalSizee);
 rip = rip * (1 + (signal / tremolo));
 rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
@@ -695,8 +695,8 @@ times =Array.fill(attackLen, attack / attackLen)
 // ++ Array.fill(sustainLen, sustain / sustainLen)
  ++ Array.fill(decayLen, dicay / decayLen);
 enva = Env(rip.asArray, times);
-env = EnvGen.ar(enva,doneAction:2)*gain;
-//env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
+//env = EnvGen.ar(enva,doneAction:2)*gain;
+env=EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
@@ -783,9 +783,9 @@ sig3=(sig3*mix.linlin(0,1,0.1,2)).softclip;
 
 
 //////propagation
-//sig1=sig1*mp_x.sign;
-//sig2=sig2*mp_y.sign;
-//sig3=sig3*mp_z.sign;
+sig1=sig1*mp_x.sign;
+sig2=sig2*mp_y.sign;
+sig3=sig3*mp_z.sign;
 
 ///spectral compensation
 //sig1=BRF.ar(c1,freq1/2,heavy);
@@ -1238,7 +1238,7 @@ value=obj.value.linexp(0,1,1/16,16).round(1/64).postln;
 ~sl2=Knob.new(~vw1, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(pi/4).postln;
+value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(pi/256).postln;
 //~rotation=value;
 ~rotationz=value;
 });
@@ -1321,7 +1321,7 @@ value1=obj.value.linexp(0,1,1,8).postln;
 ~sl10=Knob.new(~vw1, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/4).postln;
+value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/256).postln;
 ~incr1=value1;
 ~rotationx=value1;
 });
@@ -1332,7 +1332,7 @@ value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/4).postln;
 ~sl11=Knob.new(~vw1, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,pi-(pi/~silver)).round(pi/4).postln;
+value2=obj.value.linlin(0,1,0,pi-(pi/~silver)).round(pi/256).postln;
 ~incr2=value2;
 ~rotationy=value2;
 });
@@ -1425,8 +1425,8 @@ arg obj;
 var value,v;
 value=obj.value.linlin(0,1,0,pi).postln;
 v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
-~nn1=v;
-~nn2=~nn1.rand;
+~nn1=v.rand;
+~nn2=v.rand;
 ~mod=value;
 });
 ~sl20=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("~mod")
@@ -1565,7 +1565,7 @@ value=obj.value.linexp(0,1,1/16,16).round(1/64).postln;
 ~sl2b=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(pi/4).postln;
+value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(pi/256).postln;
 //~rotation=value;
 ~rotationz=value;
 });
@@ -1648,7 +1648,7 @@ value1=obj.value.linexp(0,1,1,8).postln;
 ~sl10b=Knob.new(~vw, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/4).postln;
+value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/256).postln;
 ~incr1=value1;
 ~rotationx=value1;
 });
@@ -1659,7 +1659,7 @@ value1=obj.value.linlin(0,1,0,2pi-(2pi/~silver)).round(pi/4).postln;
 ~sl11b=Knob.new(~vw, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,pi-(pi/~silver)).round(pi/4).postln;
+value2=obj.value.linlin(0,1,0,pi-(pi/~silver)).round(pi/256).postln;
 ~incr2=value2;
 ~rotationy=value2;
 });
@@ -1752,8 +1752,8 @@ arg obj;
 var value,v;
 value=obj.value.linlin(0,1,0,pi).postln;
 v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
-~nn1=v;
-~nn2=~nn1.rand;
+~nn1=v.rand;
+~nn2=v.rand;
 ~mod=value;
 });
 ~sl20b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("~mod")

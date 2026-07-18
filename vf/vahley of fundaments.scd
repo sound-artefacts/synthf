@@ -81,14 +81,14 @@ wt = signal.asSignal(1024).asWavetable;
 }.value;
 {
 var signal,wt;
-signal=Env([1,1000,1000],[1,1],[8,0]);
+signal=Env([1,1000,1000,1],[1,1,1],[4,0,4.neg]);
 wt = signal.asSignal(1024).asWavetable;
 ~scale1.loadCollection(wt);
 //signal.plot;
 }.value;
 {
 var signal,wt;
-signal=Env([1,1,1000],[1,1],[0,8]);
+signal=Env([1,1,1000,1],[1,1,1],[4,0,4.neg]);
 wt = signal.asSignal(1024).asWavetable;
 ~scale2.loadCollection(wt);
 //signal.plot;
@@ -96,21 +96,21 @@ wt = signal.asSignal(1024).asWavetable;
 {
 var signal,wt,r;
 r=(2pi-(2pi/((1+5.sqrt)/2)));
-signal=Env([r/4,0.001,r/8],[1,1],[4.neg,4]);
+signal=Env([r/512,0.01,r/512],[1,1],[4.neg,4]);
 wt = signal.asSignal(1024).asWavetable;
 ~rotation.loadCollection(wt);
 //signal.plot;
 }.value;
 {
 var signal,wt;
-signal=Env([1.5,1.5,10000],[1,1],[128,16]);
+signal=Env([400,20,600],[1,1,1],[4,0,4.neg]);
 wt = signal.asSignal(1024).asWavetable;
 ~ps.loadCollection(wt);
 //signal.plot;
 }.value;
 {
 var signal,wt;
-signal=Env([1,2,4],[1,1],[128,128]);
+signal=Env([1,4,1],[1,1],[4,0,4.neg]);
 wt = signal.asSignal(1024).asWavetable;
 ~sh.loadCollection(wt);
 //signal.plot;
@@ -119,40 +119,47 @@ wt = signal.asSignal(1024).asWavetable;
 (
 SynthDef.new(\run,{
 arg cor=0;
-var p,az,el,f1,f2,f3,f=0.1;
+var p,az,el,f1,f2,f3,f=0.08;
 az=Select.kr(cor,~azi);
 el=Select.kr(cor,~eli);
 p=Spherical(992,az,el);
-f1=2.pow(p.x.round(1)/992)*0.1;
-f2=2.pow(p.y.round(1)/992)*0.1;
-f3=2.pow(p.x.round(1)/992)*0.1;
-Out.kr(~controlBus_s.index,(Osc.kr(~scale.bufnum,f).abs));
-Out.kr(~controlBus_s1.index,(Osc.kr(~scale1.bufnum,f).abs));
-Out.kr(~controlBus_s2.index,(Osc.kr(~scale2.bufnum,f).abs));
-Out.kr(~controlBus_r.index,(Osc.kr(~rotation.bufnum,f).abs));
+f1=2.pow(p.x.round(1)/992)*1;
+f2=2.pow(p.y.round(1)/992)*1;
+f3=2.pow(p.x.round(1)/992)*1;
+Out.kr(~controlBus_s.index,(Osc.kr(~scale.bufnum,f.rand).abs));
+Out.kr(~controlBus_s1.index,(Osc.kr(~scale1.bufnum,f.rand).abs));
+Out.kr(~controlBus_s2.index,(Osc.kr(~scale2.bufnum,f.rand).abs));
+//Out.kr(~controlBus_r.index,(Osc.kr(~rotation.bufnum,f.rand).abs));
+//Out.kr(~controlBus_s1.index,(SinOsc.kr(TExpRand.kr(0.01,0.1,Impulse.kr(f.rand))).range(1,1000)));
+//Out.kr(~controlBus_s2.index,(SinOsc.kr(TExpRand.kr(0.01,0.1,Impulse.kr(f.rand))).range(1,1000)));
+Out.kr(~controlBus_r.index,(SinOsc.kr(TExpRand.kr(0.01,0.1,Impulse.kr(f.rand))).range(0.001,0.01)));
 Out.kr(~controlBus_shx.index,(SinOsc.kr(f1,f1.reciprocal*2pi,1).range(pi.neg,pi)));
 Out.kr(~controlBus_shy.index,(SinOsc.kr(f2,f2.reciprocal*2pi,1).range(pi.neg,pi)));
 Out.kr(~controlBus_shz.index,(SinOsc.kr(f3,f3.reciprocal*2pi,1).range(0.5pi.neg,0.5pi)));
-Out.kr(~controlBus_wx.index,(SinOsc.kr(f1,f1.reciprocal*2pi,0.01).range(pi.neg,pi)));
-Out.kr(~controlBus_wy.index,(SinOsc.kr(f2,f2.reciprocal*2pi,0.01).range(pi.neg,pi)));
-Out.kr(~controlBus_wz.index,(SinOsc.kr(f3,f3.reciprocal*2pi,0.01).range(pi.neg,pi)));
+Out.kr(~controlBus_wx.index,(SinOsc.kr(f1,f1.reciprocal*2pi,1).abs));
+Out.kr(~controlBus_wy.index,(SinOsc.kr(f2,f2.reciprocal*2pi,1).abs));
+Out.kr(~controlBus_wz.index,(SinOsc.kr(f3,f3.reciprocal*2pi,1).abs));
 //Out.kr(~controlBus_wx.index,(Amplitude.kr(InFeedback.ar(0)))); ////distribution control array period feedback
 //Out.kr(~controlBus_wy.index,(Amplitude.kr(InFeedback.ar(1))));
 //Out.kr(~controlBus_wz.index,(Amplitude.kr(InFeedback.ar(2))));
-Out.kr(~controlBus_points.index,(Osc.kr(~ps.bufnum,f).abs));
-Out.kr(~controlBus_sh.index,(Osc.kr(~sh.bufnum,f).abs));
+//Out.kr(~controlBus_points.index,(Osc.kr(~ps.bufnum,f.rand).abs));
+Out.kr(~controlBus_points.index,(SinOsc.kr(TExpRand.kr(0.01,0.1,Impulse.kr(f.rand))).range(10,600)));
+//Out.kr(~controlBus_sh.index,(Osc.kr(~sh.bufnum,f.rand).abs));
+Out.kr(~controlBus_sh.index,(SinOsc.kr(TExpRand.kr(0.01,0.1,Impulse.kr(f.rand))).range(1,4)));
 }).add;
 );
 );
 	1.wait;
 ////animation routine
-~count=[2,2,2,2,2,2];
+~countf=[2,3,2,3,2,3];
 ~animation=Synth.new(\run).register;
-({
+(
+~countf=[4,3,2,2,2,2];
+			{
 var pla=0,az=0,el=0;
 var sph,mag,r,run = true;
 var scale=1,scale1=10,scale2=10,harm,perspective;
-var axis=~count.[0],cloud=~count.[1],axis1=~count.[2],gravity1=~count.[3],axis2=~count.[4],gravity2=~count.[5];
+var axis=~countf.[0],cloud=~countf.[1],axis1=~countf.[2],gravity1=~countf.[3],axis2=~countf.[4],gravity2=~countf.[5];
 var m_x=1,m_y=1,m_z=1,mq=m_x+1;
 var sph1,sph2,sph3,sph4,sph7,sph6,sph11,sph22,sph33,sph44,sph77,sph66;
 var sph_1,sph_2,sph_3,sph_4,sph_7,sph_6,sph_11,sph_22,sph_33,sph_44,sph_77,sph_66;
@@ -166,25 +173,33 @@ var g=((1+5.sqrt)/2),s=(1+2.sqrt),ott=pi.rand2,temp,space,mod_el=0;
 var waveSpeed = 0.5,waveFreq = 3,amp=0.5;
 var theta,phi,wave,anglex,angley,anglez,ratio1,ratio2,ratio3;
 
-~az=[];~el=[];~magx=[];~magy=[];~magz=[];~qx=[];
+~azf=[];~elf=[];~magxf=[];~magyf=[];~magzf=[];~qxf=[];~azu=[];~elu=[];
 
-~tree= Routine({loop{
+~treef= Routine({loop{
 scale=~controlBus_s.getSynchronous;
 scale1=~controlBus_s1.getSynchronous;
 scale2=~controlBus_s2.getSynchronous;
+//scale=~fuse;
+///scale1=~fuse1;
+//scale2=~fuse2;
 rotation=~controlBus_r.getSynchronous;
 harm=~controlBus_sh.getSynchronous;
 anglex=~controlBus_shx.getSynchronous;
 angley=~controlBus_shy.getSynchronous;
 anglez=~controlBus_shz.getSynchronous;
+rotation=0.1;
+harm=1;
+anglex=0;
+angley=0;
+anglez=0;
 //ratio=~controlBus_wx.getSynchronous+~controlBus_wy.getSynchronous+~controlBus_wz.getSynchronous;
 ratio1=~controlBus_wx.getSynchronous;
 ratio2=~controlBus_wy.getSynchronous;
 ratio3=~controlBus_wz.getSynchronous;
 m_x=m_y=m_z=harm;
 mq=harm+1;
-axis=~count.[0];cloud=~count.[1];axis1=~count.[2];
-gravity1=~count.[3];axis2=~count.[4];gravity2=~count.[5];
+axis=~countf.[0];cloud=~countf.[1];axis1=~countf.[2];
+gravity1=~countf.[3];axis2=~countf.[4];gravity2=~countf.[5];
 
 az1=0; el1=0;az2=0; el2=0;
 az3=0; el3=0;az4=0; el4=0;
@@ -199,8 +214,8 @@ az_7=0; el_7=0;az_6=0; el_6=0;
 pla = 0;
 
 (
-{
-~az=[];~el=[];~magx=[];~magy=[];~magz=[];~magqx=[];~azimuth=[];~elevation=[];
+{~azu=[];~elu=[];
+~azf=[];~elf=[];~magxf=[];~magyf=[];~magzf=[];~magqxf=[];~azimuthf=[];~elevationf=[];
 axis.do{
 //////////////////////////// AZ
 cloud.do{
@@ -231,7 +246,7 @@ el_1=(el_1+(pi-(pi/g))).wrap((pi/2).neg,(pi/2));
 sph_11=Spherical(1/scale2,(az_1+angle11).wrap(pi.neg,pi),(el_1+angle11).wrap((pi/2).neg,(pi/2)));
 (sph_1+sph_11.asCartesian).asSpherical.theta
 };
-~az=~az++azimuth;
+~azf=~azf++azimuth;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -268,7 +283,7 @@ el_2=(el_2+(pi-(pi/g))).wrap((pi/2).neg,(pi/2));
 sph_22=Spherical(1/scale2,(az_2+angle11).wrap(pi.neg,pi),(el_2+angle11).wrap((pi/2).neg,(pi/2)));
 (sph_2+sph_22.asCartesian).asSpherical.phi
 };
-~el=~el++elevation;
+~elf=~elf++elevation;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -307,7 +322,7 @@ magx=((Complex(cos(((sph3.theta+anglex)*m_x)),cos(((sph3.theta+anglex)*m_x))).rh
 (Spherical(magx,sph3.theta,sph3.phi).asCartesian
 +Spherical(magx/scale2,sph_33.theta,sph_33.phi).asCartesian).asSpherical.rho
 };
-~magx=~magx++magnitudex;
+~magxf=~magxf++magnitudex;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -346,7 +361,7 @@ magy=((Complex(sin(((sph4.theta+angley)*m_x)),sin(((sph4.theta+angley)*m_x))).rh
 (Spherical(magy,sph4.theta,sph4.phi).asCartesian
 +Spherical(magy/scale2,sph_44.theta,sph_44.phi).asCartesian).asSpherical.rho
 };
-~magy=~magy++magnitudey;
+~magyf=~magyf++magnitudey;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -365,8 +380,8 @@ az77=sph7.theta;
 el77=sph7.phi;
 
 gravity1.do{
-az77=(az77+(2pi-(2pi/s))).wrap(pi.neg,pi);
 el77=(el77+(pi-(pi/g))).wrap((pi/2).neg,(pi/2));
+az77=(az77+(2pi-(2pi/s))).wrap(pi.neg,pi);
 
 angle11=angle1;
 sph77=Spherical(1/scale1,(az77+angle1).wrap(pi.neg,pi),(el77+angle1).wrap((pi/2).neg,(pi/2)));
@@ -385,7 +400,7 @@ magz=(Complex(sin(((sph7.phi+anglez)*m_z)),sin((sph7.phi*m_z))).rho/(2.sqrt));
 (Spherical(magz,sph7.theta,sph7.phi).asCartesian
 +Spherical(magz/scale2,sph_77.theta,sph_77.phi).asCartesian).asSpherical.rho
 };
-~magz=~magz++magnitudez;
+~magzf=~magzf++magnitudez;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -425,7 +440,7 @@ magqx=((((Complex(cos(((sph6.theta)*mq).wrap(pi.neg,pi)),cos(((sph6.theta)*mq).w
 (Spherical(magqx,sph6.theta,sph6.phi).asCartesian
 +Spherical(magqx/scale2,sph_66.theta,sph_66.phi).asCartesian).asSpherical.rho
 };
-~magqx=~magqx++magnitudeqx;
+~magqxf=~magqxf++magnitudeqx;
 angle11=(angle11+(2pi-(2pi/s))).wrap(0,2pi);
 };
 };
@@ -440,43 +455,43 @@ az7=0;el7=0;az6=0;el6=0;
 }.value;
 );
 (
-~magxb = ~magx.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+~magxbf = ~magxf.collect { |val, i|
+theta = ~azf[i];
+phi = ~elf[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
-~magyb = ~magy.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+~magybf = ~magyf.collect { |val, i|
+theta = ~azf[i];
+phi = ~elf[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
-~magzb = ~magz.collect { |val, i|
-theta = ~az[i];
-phi = ~el[i];
+~magzbf = ~magzf.collect { |val, i|
+theta = ~azf[i];
+phi = ~elf[i];
 wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
 );
-/*(
-(~count.[0]*~count.[1]*~count.[2]*~count.[3]*~count.[4]*~count.[5]).do{
-az=~az.[pla];
-el=~el.[pla];
-mag=(Cartesian(~magx.[pla],~magy.[pla],~magz.[pla]).rho)/2.sqrt;
+(
+(~countf.[0]*~countf.[1]*~countf.[2]*~countf.[3]*~countf.[4]*~countf.[5]).do{
+az=~azf.[pla];
+el=~elf.[pla];
+mag=(Cartesian(~magxf.[pla],~magyf.[pla],~magzf.[pla]).rho)/2.sqrt;
 pla=pla+1;
 sph=Spherical((mag+scale.rand).wrap(1,mag),az,el).asCartesian;
 sph=sph.rotateYZ(0.5pi).asSpherical;
-~azimuth=~azimuth++[sph.theta];
-~elevation=~elevation++[sph.phi];
-})*/
-(0.03).wait;
+~azu=~azu++[sph.theta];
+~azu=~azu++[sph.phi];
+});
+(0.05).wait;
 };};
 );
 }.value
 );
 	1.wait;
-~tree.play;
+~treef.play;
 
 //lining
 /*(
@@ -543,33 +558,52 @@ Routine({loop{
 
 ///image plotter
 ({
-var w,u,size=1000,diameter=400,n=0,m=0,k=0;
+var w,u,size=1000,diameter=500,n=0,m=0,k=0;
 var r_az = 0.0,r_el = 0.0,az,el,cp,protaz,protel;
-var point,perspective,dist=400,depth=2,mag=1;
+var point,perspective,dist=300,depth=2,mag=1;
 var rx = 0.0,ry = 0.0,rz = 0.0,rate=0.01;
 var plane,pointx,pointy;
-var d_o=1,lined=8,run = true,tilt=0.15pi;
-var wave=25,sph;
-~vertice=(~count.[0]*~count.[1]*~count.[2]*~count.[3]*~count.[4]*~count.[5]);
+var d_o=2,lined=25,run = true,tilt=0.15pi;
+var wave=12,sph,ratio1,ratio2,ratio3;
+			~treef.play;
+~verticef=(~countf.[0]*~countf.[1]*~countf.[2]*~countf.[3]*~countf.[4]*~countf.[5]);
 w = Window("3d Plotter", Rect(100,100,size,size));
 v = UserView(w, w.view.bounds).background_(Color.black);
 v.drawFunc = {
+ratio1=~controlBus_wx.getSynchronous;
+ratio2=~controlBus_wy.getSynchronous;
+ratio3=~controlBus_wz.getSynchronous;
 Pen.translate(v.bounds.width/2,v.bounds.height/2);
 ///Pen.scale(0.5, 2);
 ~point_cloud=[];
-d_o=~controlBus_points.getSynchronous;
+				d_o=ratio3;
+				wave=ratio1*10;
+dist=~controlBus_points.getSynchronous;
+lined=ratio2*100;
 n=0;
-(~vertice).do {
-az=~az.[n];el=~el.[n];
-mag=(Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho/(2.sqrt));
+(~verticef).do {
+az=~azf.[n];el=~elf.[n];
+//mag=(Cartesian(~magxf.[n],~magyf.[n],~magzf.[n]).rho/(2.sqrt));
+mag=(Cartesian(~magqxf.[n],~magyf.[n],~magzf.[n]).rho/(2.sqrt));
 ///mag=(Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho/(2.sqrt))+(Cartesian(~qx.[n],~qy.[n],0).rho/(2.sqrt));
 ///cloud assignment and distortion
 protaz=(az + r_az).wrap(pi.neg,pi);
 protel=(el + r_el).wrap(0.5pi.neg,0.5pi);
 point = Spherical(diameter*mag,protaz,protel).asCartesian;
+(
+point.x = point.x.wrap2(300);
+point.y = point.y.wrap2(300);
+point.z = point.z.wrap2(300);
+		);
+		/*(
+point.x = point.x.clip2(100);
+point.y = point.y.clip2(100);
+point.z = point.z.clip2(100);
+		)*/
+
 ///rotations
 point=point.rotateYZ(rx).rotateXZ(ry).rotateXY(rz);
-//point=point.rotateYZ(tilt);
+point=point.rotateYZ(tilt);
 //////remaping
 plane=Complex(point.x,point.y);
 cp=Polar(point.z,plane.theta);
@@ -577,10 +611,9 @@ cp=point;
 ////////////////////perspective
 perspective = dist / (dist + point.z + (dist/depth));///remove (dist/2) for no depth
 ///color
-Pen.width = perspective.clip(2,1.0)*d_o/wave;
-Pen.fillColor = Color.white.alpha_(perspective.clip(0.1,1.0));
+Pen.fillColor = Color.new(0.999.rand,0.999.rand,0.999.rand,(perspective.clip(0.1,1.0)));
 Pen.strokeColor = Color.white.alpha_(perspective.clip(0.1,1.0));
-//Pen.strokeColor = Color.new(0.999.rand,0.999.rand,0.999.rand);
+Pen.strokeColor = Color.new(0.999.rand,0.999.rand,0.999.rand,(perspective.clip(0.1,1.0)));
 //////points
 pointx=cp.x*perspective;
 pointy=cp.y*perspective;
@@ -602,6 +635,7 @@ var m = n + 1;
 Pen.width = perspective.clip(2,1.0)*d_o/wave;
 Pen.fillColor = Color.white.alpha_(perspective.clip(0.1,1.0));
 Pen.strokeColor = Color.white.alpha_(perspective.clip(0.1,1.0));
+//Pen.strokeColor = Color.new(0.999.rand,0.999.rand,0.999.rand,(perspective.clip(0.1,1.0)));
 ///sequence exclusion
 //compound exclusion, based on sequence and point distance
 //if( (~lseq.[k] == 0) and: { ~point_cloud[n].dist(~point_cloud[m]) < (diameter/lined) }) {Pen.line( ~point_cloud.[n], ~point_cloud.[m])};
@@ -627,12 +661,17 @@ inf.do {
 r_az = r_az + 0;
 r_el = r_el + 0;
 (
-rx=(rx +~controlBus_r.getSynchronous).wrap(0,2pi);
-ry=(ry +~controlBus_r.getSynchronous).wrap(0,2pi);
-rz=(rz +~controlBus_r.getSynchronous).wrap(0,2pi);
+rx=(rx +~controlBus_r.getSynchronous+0.001).wrap(0,2pi);
+ry=(ry +~controlBus_r.getSynchronous+0.002).wrap(0,2pi);
+rz=(rz +~controlBus_r.getSynchronous+0.003).wrap(0,2pi);
 );
+/*(
+rx=(rx +~rotationx).wrap(0,2pi);
+ry=(ry +~rotationy).wrap(0,2pi);
+rz=(rz +~rotationz).wrap(0,2pi);
+)*/
 {v.refresh}.defer;
-(1/8).wait;
+(0.01).wait;
 };
 }).play;
 }.defer)
