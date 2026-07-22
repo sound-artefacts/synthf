@@ -82,3 +82,36 @@ every localization vector source is three speakers (three channels xyz) wavefile
 First proof of concept 'Geodesic Octahedron' InSonic 2015
 
 ///if the intention is to use stereo sets instead of 3d wavefield sources, leave z channel unpluged and output only sets of x,y channel pairs. eg [0,1,3,4] for stereo 2d wavefield
+
+
+
+
+
+
+
+//////vfs synth on vf folder is a more complex synth
+
+it utilizes a more comlex musical sequencers, two synth instrument instances, wavefield and spat compression
+,different settings according to code variation, and other like inteference collision between the two instrument instances and the melodic variation.
+Knobs are as follows:
+
+tempo: temoclock of sequencer, slow to fast (1/16)
+rz: rotation of timbral information tensor around the z axis, slow to fast
+s_range: tonal range of scale tone factor (dorian or other, Scale.directory)
+t_range: tonal range of temperament (16256 cents per octave)
+overdrive: rectifier distortion range, low to high
+drive: oscilator resonance filter, sine to saw
+comp: compressor setting, high lowend cutt on small speaker to low and large
+attack: percussve envelope  attacek time
+decay: percussve decay  attacek time
+rx: rotation of timbral information tensor around the x axis, slow to fast
+ry: rotation of timbral information tensor around the y axis, slow to fast
+fund: fundamental frequency scaler, octave temperament on power of two * 9/8
+gain: total amp level (envelope)
+revroom: reverb room size, none to large
+revmix: reverb wet mix and softclip gain, low to high
+fuse1: coordinates of timbral data tensor, fuse to less coordinates (interferance collision)
+fuse2: coordinates of timbral data tensor, fuse to less coordinates, (fuse to one coordinate if fuse1 is max)
+fuse: pan speed for spat
+harm: spherical harmonic on timbral data tensor
+~mod: timbral data exstraction seed
