@@ -82,14 +82,15 @@ every localization vector source is three speakers (three channels xyz) wavefile
 First proof of concept 'Geodesic Octahedron' InSonic 2015
 
 ///if the intention is to use stereo sets instead of 3d wavefield sources, leave z channel unpluged and output only sets of x,y channel pairs. eg [0,1,3,4] for stereo 2d wavefield
+//////////////
+
+////////////
+
+//////////////////
 
 
 
-
-
-
-
-//////vfs synth on vf folder is a more complex synth
+///////////////vfs synth on vf folder is a more complex synth
 
 it utilizes a more comlex musical sequencers, two synth instrument instances, wavefield and spat compression
 ,different settings according to code variation, and other like inteference collision between the two instrument instances and the melodic variation.
