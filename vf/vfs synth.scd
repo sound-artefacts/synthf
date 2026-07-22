@@ -1046,13 +1046,11 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 }.value);
 
 ~dursum=~dur.sum;
-
+~nn=~set.rand;
 ~seqt= Pseq(~durt ,inf).asStream;
 ~seqt1= Pseq(~dur ,inf).asStream;
 ~clock = TempoClock(1);
 ~clockb = TempoClock(1);
-~nn1=~set.rand;
-~nn2=~set.rand;
 (
 {
 var x,y,z,px,py,pz,x1,y1,z1,px1,py1,pz1;
@@ -1067,11 +1065,11 @@ Routine({loop{
 //y1 = Spherical(~set-1,~c_az1,~c_el1).y.round(1).asInteger.abs;
 //z1 = Spherical(~set-1,~c_az1,~c_el1).z.round(1).asInteger.abs;
 ~azar=[];~azar1=[];~elar=[];~elar1=[];~magar1=[];~magar2=[];
-x=~nn1;
-x1=~nn2;
+x=~nn;
+x1=~nn;
 12.do{
-x=~nn1.rand;
-x1=~nn2.rand;
+x=~nn.rand;
+x1=x;
 px=~cx.[x];
 py=~cy.[x];
 pz=~cz.[x];
@@ -1118,7 +1116,7 @@ timbr=Spherical(~magar2.[n1],~azar1.[n1],~elar1.[n1]);
 ~shape2=timbr.rho;
 (~seqt1.next).wait; // frame duration
 };
-}).play(~clockb);
+}).play(~clock);
 }.defer
 );
 
@@ -1145,7 +1143,7 @@ Pbind(\instrument, \synth,
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
 );
-~patternb.play(~clockb);
+~patternb.play(~clock);
 );
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
@@ -1466,10 +1464,8 @@ value=obj.value.linlin(0,1,1,4).round(1).postln;
 arg obj;
 var value,v;
 value=obj.value.linlin(0,1,0,pi).postln;
-v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
-~nn1=v.rand;
-~nn2=v.rand;
-~mod=value;
+v=obj.value.linlin(0,1,0,~set).round(1).asInteger.postln;
+~nn=v;
 });
 ~sl20=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("~mod")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1598,7 +1594,7 @@ Pen.fillStroke;
 arg obj;
 var value;
 value=obj.value.linlin(0,1,1/32,16).round(1/16).postln;
-~clockb.tempo_(value);
+~clock.tempo_(value);
 });
 ~st1b=StaticText(~vw,Rect(50,50+sk,sk+20,sk)).string_("tempo")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1794,9 +1790,8 @@ value=obj.value.linlin(0,1,1,4).round(1).postln;
 arg obj;
 var value,v;
 value=obj.value.linlin(0,1,0,pi).postln;
-v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
-~nn1=v.rand;
-~nn2=v.rand;
+v=obj.value.linlin(0,1,0,~set).round(1).asInteger.postln;
+~nn=v;
 ~mod=value;
 });
 ~sl20b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("~mod")
