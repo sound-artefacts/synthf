@@ -1,5 +1,4 @@
 ///Quarks.install("MathLib");
-
 (
 (
 s.options.numWireBufs = 1024*16;
@@ -22,24 +21,17 @@ s.makeGui(w);
 ~controlBus_5 = Bus.control(s, 1);
 ~controlBus_6 = Bus.control(s, 1);
 ~timbr_dur=(1/16);
-~controlBus_x = Bus.control(s, 1);
-~controlBus_y = Bus.control(s, 1);
-~controlBus_z = Bus.control(s, 1);
 s.waitForBoot{
 Tdef(\drone, {
+//~controlBus = Bus.control(s, 1);
 
-(
-{Out.kr(~controlBus_x.index,SinOsc.kr(0.001,Spherical(2pi,0.3,0.01).x,pi))}.play;
-{Out.kr(~controlBus_y.index,SinOsc.kr(0.001,Spherical(2pi,0.3,0.01).y,pi))}.play;
-{Out.kr(~controlBus_z.index,SinOsc.kr(0.001,Spherical(2pi,0.3,0.01).z,pi))}.play;
-);
 ////////////////////////////////////////////////////////////////////////////////////////// wavetable, scales, space,timbre///////////////////////////////////////
 (
 {
 var az1=0,el1=0,az2=0,el2=0,angle=0;
 var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 
-~azth=[]; ~elth=[];
+~az=[]; ~el=[];
 
 32.do{
     azimuth = 32.collect{
@@ -56,17 +48,16 @@ var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 
     angle = (angle + (2pi-(2pi/silver_r))).wrap(pi.neg,pi);
 
-    ~azth = ~azth ++ azimuth;
-    ~elth = ~elth ++ elevation;
+    ~az = ~az ++ azimuth;
+    ~el = ~el ++ elevation;
 
     az1=0; el1=0;
     az2=0; el2=0;
 };
 }.value;
 );
-
 ~vertices = 32*32;
-~count=[1,1,2,4,4,4];
+~count=[1,1,5,5,5,5];
 ~set=(~count.[0]*~count.[1]*~count.[2]*~count.[3]*~count.[4]*~count.[5]);
 ~fuse1=1;~fuse2=1;~harm=1;~mod=0;~fuse=1000;
 ({
@@ -91,15 +82,16 @@ var theta,phi,wave,anglex,angley,anglez;
 ~rotation=1;~rotationx=0;~rotationy=0;~rotationz=0;~rx=0;~ry=0;~rz=0;
 ~azr=[];~elr=[];~magx=[];~magy=[];~magz=[];~qx=[];
 ~cx = [];~cy = [];~cz = [];
-//g=7;s=7;
+
 ~tree= Routine({loop{
 scale=~fuse;
 scale1=~fuse1;
 scale2=~fuse2;
 harm=~harm;
-anglex=~controlBus_x.getSynchronous;
-angley=~controlBus_y.getSynchronous;
-anglez=~controlBus_z.getSynchronous;
+anglex=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(~mod).x*pi;
+angley=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(~mod).y*pi;
+anglez=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(~mod).z*pi;
+
 m_x=m_y=m_z=harm;
 mq=harm+1;
 axis=~count.[0];cloud=~count.[1];axis1=~count.[2];
@@ -379,7 +371,6 @@ wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
 );
-
 n=0;
 ~set.do{
 var az, el;
@@ -387,17 +378,12 @@ var x, y, z,rot,mag=1;
 
 az = ~azr.[n];
 el = ~elr.[n];
-mag=Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho;
+//mag=(Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho)/2.sqrt;
 rot=Spherical(mag,az,el).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
 //x = cos(el) * cos(az);
 //y = cos(el) * sin(az);
 //z = sin(el);
 x=rot.x; y=rot.y; z=rot.z;
-(
-x = x.clip2(mag/2.sqrt);
-y = y.clip2(mag/2.sqrt);
-z = z.clip2(mag/2.sqrt);
-);
 ~cx = ~cx ++ x; ~cy = ~cy ++ y; ~cz = ~cz ++ z;
 n = n + 1;
 };
@@ -408,17 +394,14 @@ n = n + 1;
 );
 
 (
-{var sph,rot;
+{
 Routine({loop{
-
-sph=Cartesian(~rotationx,~rotationy,~rotationz);
-rot=Spherical(0.01,sph.theta,sph.phi);
 (
-~rx=(~rx +rot.x).wrap(0,2pi);
-~ry=(~ry +rot.y).wrap(0,2pi);
-~rz=(~rz +rot.z).wrap(0,2pi);
+~rx=(~rx +~rotationx).wrap(0,2pi);
+~ry=(~ry +~rotationy).wrap(0,2pi);
+~rz=(~rz +~rotationz).wrap(0,2pi);
 );
-(~timbr_dur).wait; // frame duration
+(0.01).wait; // frame duration
 };
 }).play;
 }.defer
@@ -446,29 +429,26 @@ wt = signal.asWavetable;
 }.value;
 );
 (
-~note=(5*7);
-~note10=(5*7);
-~num=[0,0,5,7,12,17,19,24,29,31,48,53,55,96];
-~note=13;
+~note=26;
+~note10=26;
 (
 {
 var nn=1.neg;
 ~scale=~note.collect{nn=nn+1;Scale.dorian.performDegreeToKey(nn,12)};
 }.value;
 );
-~octaves=2;
+
 (
 {
 var nn=1.neg,scale1,scale2;
-~scale1=~note10.collect{nn=nn+1;Scale.minorPentatonic.performDegreeToKey(nn,12)};
+scale1=~note10.collect{nn=nn+1;Scale.minorPentatonic.performDegreeToKey(nn,12)};
 nn=1.neg;
-~scale2=~note10.collect{nn=nn+1;Scale.majorPentatonic.performDegreeToKey(nn,12)};
+scale2=~note10.collect{nn=nn+1;Scale.majorPentatonic.performDegreeToKey(nn,12)};
 //~scale10=[scale1,scale2];
-~scale10=[~scale1,~scale2];
+~scale10=[scale1,scale2];
 }.value;
 );
 );
-
 ////spat
 ~az=[0,0.25pi,0.75pi,pi];
 ~el=[0.125pi,0.125pi,0.125pi,0.125pi];
@@ -476,15 +456,15 @@ nn=1.neg;
 (
 SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
-c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1;
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
+c=0,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
+busArray = #[0,1,2,3];
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=16;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective,revm;
+var vanish=4,dist=(2/3);
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
@@ -497,23 +477,22 @@ rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
 times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dicay / (signal.size - peak - 1));
 enva = Env(rip.asArray, times);
-env = EnvGen.ar(enva,doneAction:2)*gain;
-//env = EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
+env = EnvGen.ar(enva,doneAction:2)*gain*2;
 
-pan=LFNoise1.ar(elosc,pi);
+pan=SinOsc.ar(elosc,0,pi);
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
 ///osc
-mp_x = (sc)  * cos(el) * cos(az);
-mp_y = (sc)  * cos(el) * sin(az);
-mp_z = (sc)  * sin(el);
+mp_x = (sc*mag1)  * cos(el) * cos(az);
+mp_y = (sc*mag1)  * cos(el) * sin(az);
+mp_z = (sc*mag1)  * sin(el);
 
-mps_x = (ssc) * cos(el) * cos(az);
-mps_y = (ssc) * cos(el) * sin(az);
-mps_z = (ssc) * sin(el);
+mps_x = (ssc*mag1) * cos(el) * cos(az);
+mps_y = (ssc*mag1) * cos(el) * sin(az);
+mps_z = (ssc*mag1) * sin(el);
 
 
 mpf_x =pi* cos(el) * cos(az);
@@ -526,8 +505,7 @@ mpf_z =pi* sin(el);
 //mps_x=mps_x*((ssc*dist)/((ssc*dist)+mps_z+((ssc*dist)/vanish)));
 //mps_y=mps_y*((ssc*dist)/((ssc*dist)+mps_z+((ssc*dist)/vanish)));
 //key=Select.kr(sb,~scale10);
-//key=~scale1;
-key=~num;
+key=~scale;
 
 b_x=2.pow(mp_x.round(1)/16256);
 b_y=2.pow(mp_y.round(1)/16256);
@@ -545,8 +523,6 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = ((~octaves*2)*dist) / (((~octaves*2)*dist) + b_z.reciprocal + (((~octaves*2)*dist)/vanish));
-revm=perspective.linlin(0,1,1,0);
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -570,11 +546,11 @@ phasey=mpf_y;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),mix,room);
 c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),mix,room);
 c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),mix,room);
 
 ////distortion rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -585,13 +561,14 @@ sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
 
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
+sig1=(sig1*mix.linlin(0,1,0.1,2)).softclip;
+sig2=(sig2*mix.linlin(0,1,0.1,2)).softclip;
+sig3=(sig3*mix.linlin(0,1,0.1,2)).softclip;
+
 
 //////propagation
-sig1=sig1*mp_x.sign*perspective;
-sig2=sig2*mp_y.sign*perspective;
+sig1=sig1*mp_x.sign;
+sig2=sig2*mp_y.sign;
 sig3=sig3*mp_z.sign;
 
 ///spectral compensation
@@ -611,55 +588,56 @@ threshold=(((343/s_size)/fund).reciprocal.ampdb/2.sqrt).dbamp;
 sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
-
 /////spat
 (
 g_ch1=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
 sig1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[3]));
 );
 
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2)));
+(
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1+g_ch2)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2+g_ch3)));
 //Out.ar(busArray.[2],LeakDC.ar(sig1*env*(g_ch3)));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*(g_ch4)));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env));
+);
 
 Out.kr(~controlBus_1.index,(sig1*env));
 Out.kr(~controlBus_2.index,(sig2*env));
@@ -684,19 +662,18 @@ Out.ar(busArray.[11],LeakDC.ar(sig3*env*g_ch4));
 
 }).add;
 );
-////second instrument
 (
 SynthDef.new(\synthb,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
-c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1;
-var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
+c=0,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
+busArray = #[0,1,2,3];
+var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=16;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
-var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
-var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
+var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf;
+var g_ch1,g_ch2,g_ch3,g_ch4,a1,a2,a3,a4,mp,mps,mpf,pan;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=4,perspective,revm;
+var vanish=4,dist=(2/3);
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
@@ -711,20 +688,20 @@ times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dic
 enva = Env(rip.asArray, times);
 env = EnvGen.ar(enva,doneAction:2)*gain*2;
 
-pan=LFNoise1.ar(elosc,pi.neg);
+pan=SinOsc.ar(elosc,0.5pi,5pi);
 
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
 ///osc
-mp_x = (sc)  * cos(el) * cos(az);
-mp_y = (sc)  * cos(el) * sin(az);
-mp_z = (sc)  * sin(el);
+mp_x = (sc*mag1)  * cos(el) * cos(az);
+mp_y = (sc*mag1)  * cos(el) * sin(az);
+mp_z = (sc*mag1)  * sin(el);
 
-mps_x = (ssc) * cos(el) * cos(az);
-mps_y = (ssc) * cos(el) * sin(az);
-mps_z = (ssc) * sin(el);
+mps_x = (ssc*mag1) * cos(el) * cos(az);
+mps_y = (ssc*mag1) * cos(el) * sin(az);
+mps_z = (ssc*mag1) * sin(el);
 
 
 mpf_x =pi* cos(el) * cos(az);
@@ -737,8 +714,7 @@ mpf_z =pi* sin(el);
 //mps_x=mps_x*((ssc*dist)/((ssc*dist)+mps_z+((ssc*dist)/vanish)));
 //mps_y=mps_y*((ssc*dist)/((ssc*dist)+mps_z+((ssc*dist)/vanish)));
 //key=Select.kr(sb,~scale10);
-//key=~scale2;
-key=~num;
+key=~scale;
 
 b_x=2.pow(mp_x.round(1)/16256);
 b_y=2.pow(mp_y.round(1)/16256);
@@ -756,8 +732,6 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = ((~octaves*2)*dist) / (((~octaves*2)*dist) + b_z.reciprocal + (((~octaves*2)*dist)/vanish));
-revm=perspective.linlin(0,1,1,0);
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -781,11 +755,11 @@ phasey=mpf_y;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),mix,room);
 c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),mix,room);
 c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),mix,room);
 
 ////distortion rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -795,13 +769,15 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
+
+sig1=(sig1*mix.linlin(0,1,0.1,2)).softclip;
+sig2=(sig2*mix.linlin(0,1,0.1,2)).softclip;
+sig3=(sig3*mix.linlin(0,1,0.1,2)).softclip;
+
 
 //////propagation
-sig1=sig1*mp_x.sign*perspective;
-sig2=sig2*mp_y.sign*perspective;
+sig1=sig1*mp_x.sign;
+sig2=sig2*mp_y.sign;
 sig3=sig3*mp_z.sign;
 
 ///spectral compensation
@@ -821,53 +797,54 @@ threshold=(((343/s_size)/fund).reciprocal.ampdb/2.sqrt).dbamp;
 sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
-
 /////spat
 (
 g_ch1=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
 sig1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(el)*
  sig3.range(0.001,1)*sin(~el.[3]));
 );
 
 (
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch3)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch4)));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1+g_ch2)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2+g_ch3)));
+//Out.ar(busArray.[2],LeakDC.ar(sig1*env*(g_ch3)));
+//Out.ar(busArray.[3],LeakDC.ar(sig2*env*(g_ch4)));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env));
 );
 
@@ -966,11 +943,6 @@ var dx=[],dy=[],dz=[],bx,by,bz,durx2,dury2,durz2;
 ~elrth=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
 );
 
-(
-~kol=~vertices.rand;~kol1=~vertices.rand;~kol2=~vertices.rand;~kol3=~vertices.rand;
-~azrth=[~azth.[~kol],~azth.[~kol1],~azth.[~kol2],~azth.[~kol3]];
-~elrth=[~elth.[~kol],~elth.[~kol1],~elth.[~kol2],~elth.[~kol3]];
-);
 
 ~dur=[];
 
@@ -1046,10 +1018,9 @@ word.do({|i| ~lseq = ~lseq ++ dictnotes[i.asSymbol];});
 }.value);
 ~gain=1;~drive=0;~c=0;~attack=0.01;~decay=1;~s_size=1;~lowend=20;~room=0;~sscb=26;~pan1=0.001;~pan2=0.001;
 ~gainb=1;~driveb=0;~cb=0;~attackb=0.01;~decayb=1;~s_sizeb=1;~lowendb=20;~roomb=0;~scb=1;
-~incr1=0;~incr2=0;~sc=1;~gold=((1+5.sqrt)/2);~silver=(1+2.sqrt);~mixb=0;~rectb=16;~dist1=1;~dist2=1;
-~incr=0;~ssc=26;~mix=0;~rect=16;~s=0;~azimuth=1;~elevation=1;~azimuth1=1;~elevation1=1;
+~incr1=0;~incr2=0;~sc=1;~gold=((1+5.sqrt)/2);~silver=(1+2.sqrt);~mixb=0;~rectb=16;
+~incr=0;~ssc=26;~mix=0;~rect=16;~s=0;~azimuth=0;~elevation=0;~azimuth1=0;~elevation1=0;
 ~alternating=[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1];~hor=0;~lat=0;~shape1=1;~shape2=1;
-//~azar=[];~azar1=[];~elar=[];~elar1=[];~magar1=[];~magar2=[];
 //~seq= Pseq([~dur.[0],Rest(~dur.[13.rand]),~dur.[1],Rest(~dur.[13.rand]),~dur.[2],Rest(~dur.[13.rand]),~dur.[3]] ,inf);
 ~tempo=1;
 TempoClock.default.tempo_(1);
@@ -1067,31 +1038,9 @@ Routine({loop{
 //~c_el=0.5pi.rand2;
 //~c_az1=0.5pi;
 //~c_el1=0.5pi.rand2;
-			//~dur=[1,1,1,1,1,1,1,1,1,1,1,1];
-({
-var a,b,c,d;
-a=[~dur.[0]+~dur.[1]+~dur.[2]];
-b=[~dur.[3]+~dur.[4]+~dur.[5]];
-c=[~dur.[6]+~dur.[7]+~dur.[8]];
-d=[~dur.[9]+~dur.[10]+~dur.[11]];
-~durt=a++b++c++d;
-}.value);
-~clock = TempoClock(1);
-~clockb = TempoClock(1);
-			~dursum=~dur.sum;
+~nn1=~set.rand;
+~nn2=~set.rand;
 (
-{
-Routine({loop{
-~nn=~set.rand;
-(~dursum).wait; // frame duration
-};
-}).play(~clock);
-}.defer
-);
-
-~nn=~set.rand;
-~seqt= Pseq(~durt ,inf).asStream;
-~seqt1= Pseq(~dur ,inf).asStream;
 {
 var x,y,z,px,py,pz,x1,y1,z1,px1,py1,pz1;
 Routine({loop{
@@ -1104,100 +1053,44 @@ Routine({loop{
 //x1 = Spherical(~set-1,~c_az1,~c_el1).x.round(1).asInteger.abs;
 //y1 = Spherical(~set-1,~c_az1,~c_el1).y.round(1).asInteger.abs;
 //z1 = Spherical(~set-1,~c_az1,~c_el1).z.round(1).asInteger.abs;
-//~azar=[];~azar1=[];~elar=[];~elar1=[];~magar1=[];~magar2=[];
-x=~nn;
-x1=~nn;
-//12.do{
-//x=~nn.rand;
-//x1=x;
+x=y=z=~nn1;
+x1=y1=z1=~nn2;
 px=~cx.[x];
-py=~cy.[x];
-pz=~cz.[x];
+py=~cy.[y];
+pz=~cz.[z];
 px1=~cx.[x1];
-py1=~cy.[x1];
-pz1=~cz.[x1];
+py1=~cy.[y1];
+pz1=~cz.[z1];
 //~shape1=1;
 //~shape2=1;
-/*~magar1=~magar1++(Cartesian(~magx.[x],~magy.[x],~magz.[x]).rho/(2.sqrt));
-~magar2=~magar2++(Cartesian(~magx.[x1],~magy.[x1],~magz.[x1]).rho/(2.sqrt));
-~azar=~azar++Cartesian(px,py,pz).theta;
-~elar=~elar++Cartesian(px,py,pz).phi;
-~azar1=~azar1++Cartesian(px1,py1,pz1).theta;
-~elar1=~elar1++Cartesian(px1,py1,pz1).phi;*/
 ~shape1=(Cartesian(~magx.[x],~magy.[x],~magz.[x]).rho/(2.sqrt));
 ~shape2=(Cartesian(~magx.[x1],~magy.[x1],~magz.[x1]).rho/(2.sqrt));
 ~azimuth=Cartesian(px,py,pz).theta;
 ~elevation=Cartesian(px,py,pz).phi;
 ~azimuth1=Cartesian(px1,py1,pz1).theta;
 ~elevation1=Cartesian(px1,py1,pz1).phi;
-//};
 (~timbr_dur).wait; // frame duration
 };
-}).play(~clock);
+}).play;
 }.defer
 );
-/*(
-{
-var n1=1.neg,timbr;
-Routine({loop{
-~timbrsm=~magar1;
-~timbrsm1=~magar2;
-~timbrsa=~azar1;
-~timbrsa1=~azar1;
-~timbrse=~elar;
-~timbrse1=~elar1;
-(~dursum).wait; // frame duration
-};
-}).play(~clock);
-}.defer
-)*/
-
-/*(
-{
-var n1=1.neg,timbr;
-Routine({loop{
-n1=(n1+1).wrap(0,11);
-timbr=Spherical(~timbrsm.[n1],~timbrsa.[n1],~timbrse.[n1]);
-~azimuth=timbr.theta;
-~elevation=timbr.phi;
-~shape1=timbr.rho;
-(~seqt1.next).wait; // frame duration
-};
-}).play(~clock);
-}.defer
-)*/
-/*(
-{
-var n1=1.neg,timbr;
-Routine({loop{
-n1=(n1+1).wrap(0,11);
-timbr=Spherical(~timbrsm1.[n1],~timbrsa1.[n1],~timbrse1.[n1]);
-~azimuth1=timbr.theta;
-~elevation1=timbr.phi;
-~shape2=timbr.rho;
-(~seqt1.next).wait; // frame duration
-};
-}).play(~clock);
-}.defer
-)*/
-
+~clock = TempoClock(1);
+~clockb = TempoClock(1);
 ~pattern = Pdef(\1,
 Pbind(\instrument, \synth,
 \dur, Pseq(~dur ,inf),\s_size,Pfunc { ~s_size }, \lowend,Pfunc { ~lowend }, \room,Pfunc { ~room },
-\gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\dist, Pfunc { ~dist1 },
+\gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating,inf),\elosc, Pfunc { ~pan1 },
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},
-\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},
+\az, Pfunc{~azimuth},\el,Pfunc{~elevation},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attack }, \dicay, Pfunc { ~decay }, \ssc, Pfunc{~ssc};
 ));
 ~pattern.play(~clock);
-
-~patternb =Pdef(\2,
-Pbind(\instrument, \synthb,
+~patternb =Pbind(\instrument, \synthb,
 \dur, Pseq(~dur ,inf),\s_size,Pfunc { ~s_sizeb }, \lowend,Pfunc { ~lowendb }, \room,Pfunc { ~roomb },
-\gain,Pfunc { ~gainb }, \sc, Pfunc { ~scb },\drive, Pfunc { ~driveb },\dist, Pfunc { ~dist2},
+\gain,Pfunc { ~gainb }, \sc, Pfunc { ~scb },\drive, Pfunc { ~driveb },
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating.reverse,inf),\elosc, Pfunc { ~pan2 },
 \c, Pfunc { ~cb },\mix, Pfunc{~mixb},\rect,Pfunc{~rectb},\mag1,Pfunc{~shape2},
 \az, Pfunc{~azimuth1},\el,Pfunc{~elevation1},
@@ -1205,28 +1098,22 @@ Pbind(\instrument, \synthb,
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
 ));
-~patternb.play(~clock);
+//~patternb.play(~clockb);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
-var size=550,sk=(size/12),w,rol=0,sz=0.5,wd=3.5,shift=1;
+var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=2,shift=1;
 var v1,v2,v3,p1,p2,p3,tx1=2,tx2=2,tx3=2;
 var lined=40,run=true,g=((1+5.sqrt)/2);
 
-w = Window("tws", Rect(50, 50, size, size)).front;
+w = Window("tws", Rect(50, 50, size, 850)).front;
 ~vw1 = UserView(w, Rect(0,0,size,size)).background_(Color.black);
-~logView1 = ListView( ~vw1, Rect(0, 0, size, size))
-.background_(Color.black).stringColor_(Color.white)
-.font_(Font('Arial', 18))
-.items_([]);
-~logItems1 = List.new;
-~log1 = { |msg| {~logItems1.add(msg); if(~logItems1.size > 200) { ~logItems1.removeAt(0);  };
- ~logView1.items_(~logItems1.asArray); ~logView1.value_(~logItems1.size - 1); }.defer;};
-//v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
-//v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
-//v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
+v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
+v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
+v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
 
-/*v1.drawFunc = {
+v1.drawFunc = {
 var x=0,y=0,n=0,m=0,k=0,t1x,br;
 p1=[];
 10.do {
@@ -1329,30 +1216,28 @@ m=m+1;k=k+1;
 };
 Pen.fillStroke;
 };
-{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);*/
+{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);
 
 (
 ~sl1=Knob.new(~vw1, Rect.new(50,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,1/32,32).round(1/16).postln;
+value=obj.value.linexp(0,1,1/32,16).round(1/8).postln;
 ~clock.tempo_(value);
-~log1.(value.asString);
 });
-~st1=StaticText(~vw1,Rect(50,50+sk,sk+20,sk)).string_("tempo")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st1=StaticText(~vw1,Rect(50,50+sk,sk,sk)).string_("tempo")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl2=Knob.new(~vw1, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,1).postln;
+value=obj.value.linexp(0,1,0.00000001,2pi-(2pi/~gold)).postln;
 //~rotation=value;
 ~rotationz=value;
-~log1.(value.asString);
 });
-~st2=StaticText(~vw1,Rect(150,50+sk,sk+20,sk)).string_("rz")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st2=StaticText(~vw1,Rect(150,50+sk,sk,sk)).string_("rz")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl3=Knob.new(~vw1, Rect.new(250,50,sk, sk)).background_(Color.black).action_({
@@ -1360,21 +1245,19 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~ssc=value1;
-~log1.(value1.asString);
 });
-~st3=StaticText(~vw1,Rect(250,50+sk,sk+20,sk)).string_("s_range")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st3=StaticText(~vw1,Rect(250,50+sk,sk,sk)).string_("s_range")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl4=Knob.new(~vw1, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,16256).round(1).asInteger.postln;
 ~sc=value2;
-~log1.(value2.asString);
 });
-~st4=StaticText(~vw1,Rect(350,50+sk,sk+20,sk)).string_("t_range")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st4=StaticText(~vw1,Rect(350,50+sk,sk,sk)).string_("t_range")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl5=Knob.new(~vw1, Rect.new(450,50,sk, sk)).background_(Color.black).action_({
@@ -1382,10 +1265,9 @@ arg obj;
 var value1,value2;
 value2=obj.value.linlin(0,1,1,8).postln;
 ~rect=value2;
-~log1.(value2.asString);
 });
-~st5=StaticText(~vw1,Rect(450,50+sk,sk+20,sk)).string_("overdrive")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st5=StaticText(~vw1,Rect(450,50+sk,sk,sk)).string_("overdrive")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl6=Knob.new(~vw1, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1393,10 +1275,9 @@ arg obj;
 var value1,value2;
 value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
 ~drive=value1;
-~log1.(value1.asString);
 });
-~st6=StaticText(~vw1,Rect(50,(50+sk+50+25+sk),sk+20,sk)).string_("drive")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st6=StaticText(~vw1,Rect(50,(50+sk+50+25+sk),sk,sk)).string_("drive")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl7=Knob.new(~vw1, Rect.new(150,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1406,10 +1287,9 @@ value1=obj.value.linexp(0,1,0.05,0.5).postln;
 ~s_size=value1;
 value2=obj.value.linexp(0,1,80,10).postln;
 ~lowend=value2;
-~log1.(value2.asString);
 });
-~st7=StaticText(~vw1,Rect(150,(50+sk+50+25+sk),sk+20,sk)).string_("comp")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st7=StaticText(~vw1,Rect(150,(50+sk+50+25+sk),sk,sk)).string_("comp")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl8=Knob.new(~vw1, Rect.new(250,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1417,10 +1297,9 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,0.01,8).postln;
 ~attack=value2;
-~log1.(value2.asString);
 });
-~st8=StaticText(~vw1,Rect(250,(50+sk+50+25+sk),sk+20,sk)).string_("attack")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st8=StaticText(~vw1,Rect(250,(50+sk+50+25+sk),sk,sk)).string_("attack")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl9=Knob.new(~vw1, Rect.new(350,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1428,34 +1307,31 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,0.01,16).postln;
 ~decay=value1;
-~log1.(value1.asString);
 });
-~st9=StaticText(~vw1,Rect(350,(50+sk+50+25+sk),sk+20,sk)).string_("decay")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st9=StaticText(~vw1,Rect(350,(50+sk+50+25+sk),sk,sk)).string_("decay")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl10=Knob.new(~vw1, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,1).postln;
+value1=obj.value.linexp(0,1,0.00000001,2pi-(2pi/~silver)).postln;
 ~incr1=value1;
 ~rotationx=value1;
-~log1.(value1.asString);
 });
-~st10=StaticText(~vw1,Rect(450,(50+sk+50+25+sk),sk+20,sk)).string_("rx")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st10=StaticText(~vw1,Rect(450,(50+sk+50+25+sk),sk,sk)).string_("rx")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl11=Knob.new(~vw1, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,1).postln;
+value2=obj.value.linexp(0,1,0.00000001,pi-(pi/~silver)).postln;
 ~incr2=value2;
 ~rotationy=value2;
-~log1.(value2.asString);
 });
-~st11=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("ry")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st11=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("ry")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s12=Knob.new(~vw1, Rect.new(150,(50+sk+50+sk+25+25+50), sk)).background_(Color.black).action_({
@@ -1463,10 +1339,9 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,0,16256*3).round(1).asInteger.postln;
 ~c=value;
-~log1.(value.asString);
 });
-~st12=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fund")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st12=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("fund")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl13=Knob.new(~vw1, Rect.new(250,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1474,10 +1349,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.001,2pi).postln;
 ~gain=value;
-~log1.(value.asString);
 });
-~st13=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("gain")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st13=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("gain")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl14=Knob.new(~vw1, Rect.new(350,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1485,10 +1359,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~room=value;
-~log1.(value.asString);
 });
-~st14=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st14=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("revroom")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl15=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1496,10 +1369,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~mix=value;
-~log1.(value.asString);
 });
-~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revclip")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("revmix")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl16=Knob.new(~vw1, Rect.new(50,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1507,10 +1379,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse1=value;
-~log1.(value.asString);
 });
-~st16=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse1")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st16=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse1")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s117=Knob.new(~vw1, Rect.new(150,(50+sk+50+sk+25+25+sk+50+sk+50), sk)).background_(Color.black).action_({
@@ -1518,10 +1389,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse2=value;
-~log1.(value.asString);
 });
-~s117=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse2")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s117=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse2")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s118=Knob.new(~vw1, Rect.new(250,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1529,11 +1399,10 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
-~pan1=obj.value.linexp(0,1,0.00001,20).postln;
-~log1.(~pan1.asString);
+~pan1=obj.value.linexp(0,1,0.00000001,20).postln;
 });
-~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s119=Knob.new(~vw1, Rect.new(350,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1541,44 +1410,38 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1,4).round(1).postln;
 ~harm=value;
-~log1.(value.asString);
 });
-~s119=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("harm")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s119=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("harm")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl20=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,10).postln;
-~dist1=value;
-~log1.(value.asString);
+value=obj.value.linlin(0,1,0,pi).postln;
+v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
+~nn1=v.rand;
+~nn2=v.rand;
+~mod=value;
 });
-~sl20=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("dist")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~sl20=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("~mod")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 }.defer
 );
 (
 {
-var size=550,sk=(size/12),w,rol=0,sz=0.5,wd=2,shift=1;
+var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=2,shift=1;
 var v1,v2,v3,p1,p2,p3,tx1=2,tx2=2,tx3=2;
 var lined=40,run=true,g=((1+5.sqrt)/2);
 
-w = Window("tws2", Rect(650, 50, size, size)).front;
+w = Window("tws2", Rect(650, 50, size, 850)).front;
 ~vw = UserView(w, Rect(0,0,size,size)).background_(Color.black);
-~logView2 = ListView( ~vw, Rect(0, 0, size, size))
-.background_(Color.black).stringColor_(Color.white)
-.font_(Font('Arial', 18))
-.items_([]);
-~logItems2 = List.new;
-~log2 = { |msg| {~logItems2.add(msg); if(~logItems2.size > 200) { ~logItems2.removeAt(0);  };
- ~logView2.items_(~logItems2.asArray); ~logView2.value_(~logItems2.size - 1); }.defer;};
 v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
 v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
 v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
 
-/*v1.drawFunc = {
+v1.drawFunc = {
 var x=0,y=0,n=0,m=0,k=0,t1x,br;
 p1=[];
 10.do {
@@ -1681,30 +1544,28 @@ m=m+1;k=k+1;
 };
 Pen.fillStroke;
 };
-{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);*/
+{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);
 
 (
 ~sl1b=Knob.new(~vw, Rect.new(50,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,1/32,32).round(1/16).postln;
-~clock.tempo_(value);
-~log2.(value.asString);
+value=obj.value.linexp(0,1,1/32,16).round(1/8).postln;
+~clockb.tempo_(value);
 });
-~st1b=StaticText(~vw,Rect(50,50+sk,sk+20,sk)).string_("tempo")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st1b=StaticText(~vw,Rect(50,50+sk,sk,sk)).string_("tempo")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl2b=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,1).postln;
+value=obj.value.linexp(0,1,0.00000001,2pi-(2pi/~gold)).postln;
 //~rotation=value;
 ~rotationz=value;
-~log2.(value.asString);
 });
-~st2b=StaticText(~vw,Rect(150,50+sk,sk+20,sk)).string_("rz")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st2b=StaticText(~vw,Rect(150,50+sk,sk,sk)).string_("rz")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl3b=Knob.new(~vw, Rect.new(250,50,sk, sk)).background_(Color.black).action_({
@@ -1712,21 +1573,19 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sscb=value1;
-~log2.(value1.asString);
 });
-~st3b=StaticText(~vw,Rect(250,50+sk,sk+20,sk)).string_("s_range")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st3b=StaticText(~vw,Rect(250,50+sk,sk,sk)).string_("s_range")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl4b=Knob.new(~vw, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,16256).round(1).asInteger.postln;
 ~scb=value2;
-~log2.(value2.asString);
 });
-~st4b=StaticText(~vw,Rect(350,50+sk,sk+20,sk)).string_("t_range")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st4b=StaticText(~vw,Rect(350,50+sk,sk,sk)).string_("t_range")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl5b=Knob.new(~vw, Rect.new(450,50,sk, sk)).background_(Color.black).action_({
@@ -1734,10 +1593,9 @@ arg obj;
 var value1,value2;
 value2=obj.value.linlin(0,1,1,8).postln;
 ~rectb=value2;
-~log2.(value2.asString);
 });
-~st5b=StaticText(~vw,Rect(450,50+sk,sk+20,sk)).string_("overdrive")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st5b=StaticText(~vw,Rect(450,50+sk,sk,sk)).string_("overdrive")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl6b=Knob.new(~vw, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1745,10 +1603,9 @@ arg obj;
 var value1,value2;
 value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
 ~driveb=value1;
-~log2.(value1.asString);
 });
-~st6b=StaticText(~vw,Rect(50,(50+sk+50+25+sk),sk+20,sk)).string_("drive")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st6b=StaticText(~vw,Rect(50,(50+sk+50+25+sk),sk,sk)).string_("drive")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl7b=Knob.new(~vw, Rect.new(150,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1758,10 +1615,9 @@ value1=obj.value.linexp(0,1,0.05,0.5).postln;
 ~s_sizeb=value1;
 value2=obj.value.linexp(0,1,80,10).postln;
 ~lowendb=value2;
-~log2.(value2.asString);
 });
-~st7b=StaticText(~vw,Rect(150,(50+sk+50+25+sk),sk+20,sk)).string_("comp")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st7b=StaticText(~vw,Rect(150,(50+sk+50+25+sk),sk,sk)).string_("comp")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl8b=Knob.new(~vw, Rect.new(250,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1769,10 +1625,9 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,0.01,8).postln;
 ~attackb=value2;
-~log2.(value2.asString);
 });
-~st8b=StaticText(~vw,Rect(250,(50+sk+50+25+sk),sk+20,sk)).string_("attack")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st8b=StaticText(~vw,Rect(250,(50+sk+50+25+sk),sk,sk)).string_("attack")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl9b=Knob.new(~vw, Rect.new(350,50+sk+50+25,sk, sk)).background_(Color.black).action_({
@@ -1780,34 +1635,31 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,0.01,16).postln;
 ~decayb=value1;
-~log2.(value1.asString);
 });
-~st9b=StaticText(~vw,Rect(350,(50+sk+50+25+sk),sk+20,sk)).string_("decay")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st9b=StaticText(~vw,Rect(350,(50+sk+50+25+sk),sk,sk)).string_("decay")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl10b=Knob.new(~vw, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,1).postln;
+value1=obj.value.linexp(0,1,0.00000001,2pi-(2pi/~silver)).postln;
 ~incr1=value1;
 ~rotationx=value1;
-~log2.(value1.asString);
 });
-~st10b=StaticText(~vw,Rect(450,(50+sk+50+25+sk),sk+20,sk)).string_("rx")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st10b=StaticText(~vw,Rect(450,(50+sk+50+25+sk),sk,sk)).string_("rx")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl11b=Knob.new(~vw, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,1).postln;
+value2=obj.value.linexp(0,1,0.00000001,pi-(pi/~silver)).postln;
 ~incr2=value2;
 ~rotationy=value2;
-~log2.(value2.asString);
 });
-~st11b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("ry")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st11b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("ry")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s12b=Knob.new(~vw, Rect.new(150,(50+sk+50+sk+25+25+50), sk)).background_(Color.black).action_({
@@ -1815,10 +1667,9 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,0,16256*3).round(1).asInteger.postln;
 ~cb=value;
-~log2.(value.asString);
 });
-~st12b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fund")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st12b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("fund")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl13b=Knob.new(~vw, Rect.new(250,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1826,10 +1677,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.001,2pi).postln;
 ~gainb=value;
-~log2.(value.asString);
 });
-~st13b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("gain")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st13b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("gain")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl14b=Knob.new(~vw, Rect.new(350,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1837,10 +1687,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~roomb=value;
-~log2.(value.asString);
 });
-~st14b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st14b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("revroom")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl15b=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
@@ -1848,10 +1697,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~mixb=value;
-~log2.(value.asString);
 });
-~st15b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revclip")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st15b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50),sk,sk)).string_("revmix")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl16b=Knob.new(~vw, Rect.new(50,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1859,10 +1707,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse1=value;
-~log2.(value.asString);
 });
-~st16b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse1")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~st16b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse1")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s117b=Knob.new(~vw, Rect.new(150,(50+sk+50+sk+25+25+sk+50+sk+50), sk)).background_(Color.black).action_({
@@ -1870,10 +1717,9 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse2=value;
-~log2.(value.asString);
 });
-~s117b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse2")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s117b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse2")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s118b=Knob.new(~vw, Rect.new(250,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1881,11 +1727,10 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
-~pan2=obj.value.linexp(0,1,0.00001,20).postln;
-~log2.(~pan2.asString);
+~pan2=obj.value.linexp(0,1,0.00000001,20).postln;
 });
-~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("fuse")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~s119b=Knob.new(~vw, Rect.new(350,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
@@ -1893,21 +1738,22 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1,4).round(1).postln;
 ~harm=value;
-~log2.(value.asString);
 });
-~s119b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("harm")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~s119b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("harm")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 (
 ~sl20b=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,10).postln;
-~dist2=value;
-~log2.(value.asString);
+value=obj.value.linlin(0,1,0,pi).postln;
+v=obj.value.linlin(0,1,0,624).round(1).asInteger.postln;
+~nn1=v.rand;
+~nn2=v.rand;
+~mod=value;
 });
-~sl20b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("dist")
-.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
+~sl20b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk,sk)).string_("~mod")
+.stringColor_(Color.white).background_(Color.black).font_(Font('Arial',11));
 );
 }.defer
 );
