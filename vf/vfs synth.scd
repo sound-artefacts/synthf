@@ -455,7 +455,7 @@ var nn=1.neg;
 ~scale=~note.collect{nn=nn+1;Scale.dorian.performDegreeToKey(nn,12)};
 }.value;
 );
-
+~octaves=2;
 (
 {
 var nn=1.neg,scale1,scale2;
@@ -483,7 +483,7 @@ var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective;
+var vanish=2,perspective,revm;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
@@ -544,7 +544,8 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = (1*dist) / ((1*dist) + b_z.reciprocal + ((1*dist)/vanish));
+perspective = (~octaves*dist) / ((~octaves*dist) + b_z.reciprocal + ((~octaves*dist)/vanish));
+revm=perspective.linlin(0,1,1,0);
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -568,11 +569,11 @@ phasey=mpf_y;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),mix,room);
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
 c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),mix,room);
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
 c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),mix,room);
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
 
 ////distortion rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -583,9 +584,9 @@ sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
 
 
-sig1=(sig1*mix.linexp(0,1,0.1,1.333)).softclip;
-sig2=(sig2*mix.linexp(0,1,0.1,1.333)).softclip;
-sig3=(sig3*mix.linexp(0,1,0.1,1.333)).softclip;
+sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
+sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
+sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
 
 //////propagation
 sig1=sig1*mp_x.sign*perspective;
@@ -694,7 +695,7 @@ var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=4,perspective;
+var vanish=4,perspective,revm;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
@@ -754,7 +755,8 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = (gain*dist) / ((gain*dist) + b_z.reciprocal + ((gain*dist)/vanish));
+perspective = (~octaves*dist) / ((~octaves*dist) + b_z.reciprocal + ((~octaves*dist)/vanish));
+revm=perspective.linlin(0,1,1,0);
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -778,11 +780,11 @@ phasey=mpf_y;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),mix,room);
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
 c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),mix,room);
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
 c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),mix,room);
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
 
 ////distortion rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -792,9 +794,9 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
 
-sig1=(sig1*mix.linexp(0,1,0.1,1.33)).softclip;
-sig2=(sig2*mix.linexp(0,1,0.1,1.33)).softclip;
-sig3=(sig3*mix.linexp(0,1,0.1,1.33)).softclip;
+sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
+sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
+sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
 
 //////propagation
 sig1=sig1*mp_x.sign*perspective;
@@ -1206,7 +1208,7 @@ Pbind(\instrument, \synthb,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
-var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=3.5,shift=1;
+var size=550,sk=(size/12),w,rol=0,sz=0.5,wd=3.5,shift=1;
 var v1,v2,v3,p1,p2,p3,tx1=2,tx2=2,tx3=2;
 var lined=40,run=true,g=((1+5.sqrt)/2);
 
@@ -1214,7 +1216,7 @@ w = Window("tws", Rect(50, 50, size, size)).front;
 ~vw1 = UserView(w, Rect(0,0,size,size)).background_(Color.black);
 ~logView1 = ListView( ~vw1, Rect(0, 0, size, size))
 .background_(Color.black).stringColor_(Color.white)
-.font_(Font('Arial', 32))
+.font_(Font('Arial', 18))
 .items_([]);
 ~logItems1 = List.new;
 ~log1 = { |msg| {~logItems1.add(msg); if(~logItems1.size > 200) { ~logItems1.removeAt(0);  };
@@ -1366,7 +1368,7 @@ value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sl4=Knob.new(~vw1, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256*2).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
 ~sc=value2;
 ~log1.(value2.asString);
 });
@@ -1495,7 +1497,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~mix=value;
 ~log1.(value.asString);
 });
-~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revmix")
+~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revclip")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1558,7 +1560,7 @@ value=obj.value.linexp(0,1,0.01,10).postln;
 );
 (
 {
-var size=550,sk=(size/15),w,rol=0,sz=0.5,wd=2,shift=1;
+var size=550,sk=(size/12),w,rol=0,sz=0.5,wd=2,shift=1;
 var v1,v2,v3,p1,p2,p3,tx1=2,tx2=2,tx3=2;
 var lined=40,run=true,g=((1+5.sqrt)/2);
 
@@ -1566,7 +1568,7 @@ w = Window("tws2", Rect(650, 50, size, size)).front;
 ~vw = UserView(w, Rect(0,0,size,size)).background_(Color.black);
 ~logView2 = ListView( ~vw, Rect(0, 0, size, size))
 .background_(Color.black).stringColor_(Color.white)
-.font_(Font('Arial', 32))
+.font_(Font('Arial', 18))
 .items_([]);
 ~logItems2 = List.new;
 ~log2 = { |msg| {~logItems2.add(msg); if(~logItems2.size > 200) { ~logItems2.removeAt(0);  };
@@ -1718,7 +1720,7 @@ value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sl4b=Knob.new(~vw, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
 ~scb=value2;
 ~log2.(value2.asString);
 });
