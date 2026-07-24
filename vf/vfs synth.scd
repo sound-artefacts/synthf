@@ -32,7 +32,7 @@ Tdef(\drone, {
 var az1=0,el1=0,az2=0,el2=0,angle=0;
 var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 
-~az=[]; ~el=[];
+~azth=[]; ~elth=[];
 
 32.do{
     azimuth = 32.collect{
@@ -49,8 +49,8 @@ var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 
     angle = (angle + (2pi-(2pi/silver_r))).wrap(pi.neg,pi);
 
-    ~az = ~az ++ azimuth;
-    ~el = ~el ++ elevation;
+    ~azth = ~azth ++ azimuth;
+    ~elth = ~elth ++ elevation;
 
     az1=0; el1=0;
     az2=0; el2=0;
@@ -59,9 +59,10 @@ var silver_r=(1+2.sqrt), g=((1+5.sqrt)/2), azimuth, elevation;
 );
 
 ~vertices = 32*32;
-~count=[1,1,2,2,16,16];
+~count=[1,1,2,3,6,9];
 ~set=(~count.[0]*~count.[1]*~count.[2]*~count.[3]*~count.[4]*~count.[5]);
 ~fuse1=1;~fuse2=1;~harm=1;~mod=0;~fuse=1000;
+~angx=0;~angy=0;~angz=0;
 ({
 var pla=0,az=0,el=0;
 var sph,mag,r,run = true;
@@ -84,16 +85,15 @@ var theta,phi,wave,anglex,angley,anglez;
 ~rotation=1;~rotationx=0;~rotationy=0;~rotationz=0;~rx=0;~ry=0;~rz=0;
 ~azr=[];~elr=[];~magx=[];~magy=[];~magz=[];~qx=[];
 ~cx = [];~cy = [];~cz = [];
-
+//g=7;s=7;
 ~tree= Routine({loop{
 scale=~fuse;
 scale1=~fuse1;
 scale2=~fuse2;
 harm=~harm;
-anglex=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(0.01).x*pi;
-angley=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(0.01).y*pi;
-anglez=Spherical(1,pi.rand2,0.5pi.rand2).rotateXY(0.01).z*pi;
-
+anglex=~angx;
+angley=~angy;
+anglez=~angz;
 m_x=m_y=m_z=harm;
 mq=harm+1;
 axis=~count.[0];cloud=~count.[1];axis1=~count.[2];
@@ -373,6 +373,7 @@ wave = amp*sin((waveFreq * theta) + (waveFreq * phi )- waveSpeed);
 val * wave;
 };
 );
+
 n=0;
 ~set.do{
 var az, el;
@@ -380,30 +381,43 @@ var x, y, z,rot,mag=1;
 
 az = ~azr.[n];
 el = ~elr.[n];
-//mag=(Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho)/2.sqrt;
+mag=(Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho)/2.sqrt;
 rot=Spherical(mag,az,el).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
 //x = cos(el) * cos(az);
 //y = cos(el) * sin(az);
 //z = sin(el);
 x=rot.x; y=rot.y; z=rot.z;
+(
+x = x.clip2(mag/2.sqrt);
+y = y.clip2(mag/2.sqrt);
+z = z.clip2(mag/2.sqrt);
+);
 ~cx = ~cx ++ x; ~cy = ~cy ++ y; ~cz = ~cz ++ z;
 n = n + 1;
 };
-(0.05).wait;
+(~timbr_dur).wait;
 };});
 ~tree.play
 }.defer;
 );
 
 (
-{
+{var sph,rot;
 Routine({loop{
+
+sph=Cartesian(~rotationx,~rotationy,~rotationz);
+rot=Spherical(pi/64,sph.theta,sph.phi);
 (
 ~rx=(~rx +~rotationx).wrap(0,2pi);
 ~ry=(~ry +~rotationy).wrap(0,2pi);
 ~rz=(~rz +~rotationz).wrap(0,2pi);
 );
-(0.01).wait; // frame duration
+(
+~angx=(~angx +rot.x.abs).wrap(0,2pi);
+~angy=(~angy +rot.y.abs).wrap(0,2pi);
+~angz=(~angz +rot.z.abs).wrap(0,2pi);
+)	;
+(~timbr_dur).wait; // frame duration
 };
 }).play;
 }.defer
@@ -530,7 +544,7 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = dist / (dist + b_z.reciprocal + (dist/vanish));
+perspective = (1*dist) / ((1*dist) + b_z.reciprocal + ((1*dist)/vanish));
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -680,7 +694,7 @@ var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective;
+var vanish=4,perspective;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 
@@ -740,7 +754,7 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = dist / (dist + b_z.reciprocal + (dist/vanish));
+perspective = (gain*dist) / ((gain*dist) + b_z.reciprocal + ((gain*dist)/vanish));
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -949,6 +963,11 @@ var dx=[],dy=[],dz=[],bx,by,bz,durx2,dury2,durz2;
 ~elrth=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
 );
 
+(
+~kol=~vertices.rand;~kol1=~vertices.rand;~kol2=~vertices.rand;~kol3=~vertices.rand;
+~azrth=[~azth.[~kol],~azth.[~kol1],~azth.[~kol2],~azth.[~kol3]];
+~elrth=[~elth.[~kol],~elth.[~kol1],~elth.[~kol2],~elth.[~kol3]];
+);
 
 ~dur=[];
 
@@ -1056,17 +1075,17 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 }.value);
 ~clock = TempoClock(1);
 ~clockb = TempoClock(1);
+			~dursum=~dur.sum;
 (
 {
 Routine({loop{
 ~nn=~set.rand;
-(60).wait; // frame duration
+(~dursum).wait; // frame duration
 };
 }).play(~clock);
 }.defer
 );
 
-~dursum=~dur.sum;
 ~nn=~set.rand;
 ~seqt= Pseq(~durt ,inf).asStream;
 ~seqt1= Pseq(~dur ,inf).asStream;
@@ -1109,7 +1128,7 @@ pz1=~cz.[x1];
 ~azimuth1=Cartesian(px1,py1,pz1).theta;
 ~elevation1=Cartesian(px1,py1,pz1).phi;
 //};
-(0.05).wait; // frame duration
+(~timbr_dur).wait; // frame duration
 };
 }).play(~clock);
 }.defer
@@ -1172,7 +1191,8 @@ Pbind(\instrument, \synth,
 ));
 ~pattern.play(~clock);
 
-~patternb =Pbind(\instrument, \synthb,
+~patternb =Pdef(\2,
+Pbind(\instrument, \synthb,
 \dur, Pseq(~dur ,inf),\s_size,Pfunc { ~s_sizeb }, \lowend,Pfunc { ~lowendb }, \room,Pfunc { ~roomb },
 \gain,Pfunc { ~gainb }, \sc, Pfunc { ~scb },\drive, Pfunc { ~driveb },\dist, Pfunc { ~dist2},
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating.reverse,inf),\elosc, Pfunc { ~pan2 },
@@ -1181,9 +1201,8 @@ Pbind(\instrument, \synth,
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
-);
+));
 ~patternb.play(~clock);
-);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
@@ -1193,6 +1212,13 @@ var lined=40,run=true,g=((1+5.sqrt)/2);
 
 w = Window("tws", Rect(50, 50, size, size)).front;
 ~vw1 = UserView(w, Rect(0,0,size,size)).background_(Color.black);
+~logView1 = ListView( ~vw1, Rect(0, 0, size, size))
+.background_(Color.black).stringColor_(Color.white)
+.font_(Font('Arial', 32))
+.items_([]);
+~logItems1 = List.new;
+~log1 = { |msg| {~logItems1.add(msg); if(~logItems1.size > 200) { ~logItems1.removeAt(0);  };
+ ~logView1.items_(~logItems1.asArray); ~logView1.value_(~logItems1.size - 1); }.defer;};
 //v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
 //v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
 //v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
@@ -1308,6 +1334,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1/32,16).round(1/16).postln;
 ~clock.tempo_(value);
+~log1.(value.asString);
 });
 ~st1=StaticText(~vw1,Rect(50,50+sk,sk+20,sk)).string_("tempo")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1316,9 +1343,10 @@ value=obj.value.linlin(0,1,1/32,16).round(1/16).postln;
 ~sl2=Knob.new(~vw1, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,0.00001,2pi-(2pi/~gold)).postln;
+value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 //~rotation=value;
 ~rotationz=value;
+~log1.(value.asString);
 });
 ~st2=StaticText(~vw1,Rect(150,50+sk,sk+20,sk)).string_("rz")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1329,6 +1357,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~ssc=value1;
+~log1.(value1.asString);
 });
 ~st3=StaticText(~vw1,Rect(250,50+sk,sk+20,sk)).string_("s_range")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1339,6 +1368,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,1,16256*2).round(1).asInteger.postln;
 ~sc=value2;
+~log1.(value2.asString);
 });
 ~st4=StaticText(~vw1,Rect(350,50+sk,sk+20,sk)).string_("t_range")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1349,6 +1379,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linlin(0,1,1,8).postln;
 ~rect=value2;
+~log1.(value2.asString);
 });
 ~st5=StaticText(~vw1,Rect(450,50+sk,sk+20,sk)).string_("overdrive")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1359,6 +1390,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
 ~drive=value1;
+~log1.(value1.asString);
 });
 ~st6=StaticText(~vw1,Rect(50,(50+sk+50+25+sk),sk+20,sk)).string_("drive")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1371,6 +1403,7 @@ value1=obj.value.linexp(0,1,0.05,0.5).postln;
 ~s_size=value1;
 value2=obj.value.linexp(0,1,80,10).postln;
 ~lowend=value2;
+~log1.(value2.asString);
 });
 ~st7=StaticText(~vw1,Rect(150,(50+sk+50+25+sk),sk+20,sk)).string_("comp")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1381,6 +1414,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,0.01,8).postln;
 ~attack=value2;
+~log1.(value2.asString);
 });
 ~st8=StaticText(~vw1,Rect(250,(50+sk+50+25+sk),sk+20,sk)).string_("attack")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1391,6 +1425,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,0.01,16).postln;
 ~decay=value1;
+~log1.(value1.asString);
 });
 ~st9=StaticText(~vw1,Rect(350,(50+sk+50+25+sk),sk+20,sk)).string_("decay")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1399,9 +1434,10 @@ value1=obj.value.linexp(0,1,0.01,16).postln;
 ~sl10=Knob.new(~vw1, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linexp(0,1,0.00001,2pi-(2pi/~silver)).postln;
+value1=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 ~incr1=value1;
 ~rotationx=value1;
+~log1.(value1.asString);
 });
 ~st10=StaticText(~vw1,Rect(450,(50+sk+50+25+sk),sk+20,sk)).string_("rx")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1410,9 +1446,10 @@ value1=obj.value.linexp(0,1,0.00001,2pi-(2pi/~silver)).postln;
 ~sl11=Knob.new(~vw1, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,0.00001,pi-(pi/~silver)).postln;
+value2=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 ~incr2=value2;
 ~rotationy=value2;
+~log1.(value2.asString);
 });
 ~st11=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("ry")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1423,6 +1460,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,0,16256*3).round(1).asInteger.postln;
 ~c=value;
+~log1.(value.asString);
 });
 ~st12=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fund")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1433,6 +1471,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.001,2pi).postln;
 ~gain=value;
+~log1.(value.asString);
 });
 ~st13=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("gain")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1443,6 +1482,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~room=value;
+~log1.(value.asString);
 });
 ~st14=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1453,6 +1493,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~mix=value;
+~log1.(value.asString);
 });
 ~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revmix")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1463,6 +1504,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse1=value;
+~log1.(value.asString);
 });
 ~st16=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse1")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1473,6 +1515,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse2=value;
+~log1.(value.asString);
 });
 ~s117=StaticText(~vw1,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse2")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1483,6 +1526,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
+~log1.(value.asString);
 ~pan1=obj.value.linexp(0,1,0.00001,20).postln;
 });
 ~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse")
@@ -1494,6 +1538,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1,4).round(1).postln;
 ~harm=value;
+~log1.(value.asString);
 });
 ~s119=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("harm")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1504,6 +1549,7 @@ arg obj;
 var value,v;
 value=obj.value.linexp(0,1,0.01,10).postln;
 ~dist1=value;
+~log1.(value.asString);
 });
 ~sl20=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("dist")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1518,6 +1564,13 @@ var lined=40,run=true,g=((1+5.sqrt)/2);
 
 w = Window("tws2", Rect(650, 50, size, size)).front;
 ~vw = UserView(w, Rect(0,0,size,size)).background_(Color.black);
+~logView2 = ListView( ~vw, Rect(0, 0, size, size))
+.background_(Color.black).stringColor_(Color.white)
+.font_(Font('Arial', 32))
+.items_([]);
+~logItems2 = List.new;
+~log2 = { |msg| {~logItems2.add(msg); if(~logItems2.size > 200) { ~logItems2.removeAt(0);  };
+ ~logView2.items_(~logItems2.asArray); ~logView2.value_(~logItems2.size - 1); }.defer;};
 v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
 v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
 v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
@@ -1633,6 +1686,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1/32,16).round(1/16).postln;
 ~clock.tempo_(value);
+~log2.(value.asString);
 });
 ~st1b=StaticText(~vw,Rect(50,50+sk,sk+20,sk)).string_("tempo")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1641,9 +1695,10 @@ value=obj.value.linlin(0,1,1/32,16).round(1/16).postln;
 ~sl2b=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,0.00001,2pi-(2pi/~gold)).postln;
+value=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 //~rotation=value;
 ~rotationz=value;
+~log2.(value.asString);
 });
 ~st2b=StaticText(~vw,Rect(150,50+sk,sk+20,sk)).string_("rz")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1654,6 +1709,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sscb=value1;
+~log2.(value1.asString);
 });
 ~st3b=StaticText(~vw,Rect(250,50+sk,sk+20,sk)).string_("s_range")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1664,6 +1720,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,1,16256).round(1).asInteger.postln;
 ~scb=value2;
+~log2.(value2.asString);
 });
 ~st4b=StaticText(~vw,Rect(350,50+sk,sk+20,sk)).string_("t_range")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1674,6 +1731,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linlin(0,1,1,8).postln;
 ~rectb=value2;
+~log2.(value2.asString);
 });
 ~st5b=StaticText(~vw,Rect(450,50+sk,sk+20,sk)).string_("overdrive")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1684,6 +1742,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
 ~driveb=value1;
+~log2.(value1.asString);
 });
 ~st6b=StaticText(~vw,Rect(50,(50+sk+50+25+sk),sk+20,sk)).string_("drive")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1696,6 +1755,7 @@ value1=obj.value.linexp(0,1,0.05,0.5).postln;
 ~s_sizeb=value1;
 value2=obj.value.linexp(0,1,80,10).postln;
 ~lowendb=value2;
+~log2.(value2.asString);
 });
 ~st7b=StaticText(~vw,Rect(150,(50+sk+50+25+sk),sk+20,sk)).string_("comp")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1706,6 +1766,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,0.01,8).postln;
 ~attackb=value2;
+~log2.(value2.asString);
 });
 ~st8b=StaticText(~vw,Rect(250,(50+sk+50+25+sk),sk+20,sk)).string_("attack")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1716,6 +1777,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,0.01,16).postln;
 ~decayb=value1;
+~log2.(value1.asString);
 });
 ~st9b=StaticText(~vw,Rect(350,(50+sk+50+25+sk),sk+20,sk)).string_("decay")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1724,9 +1786,10 @@ value1=obj.value.linexp(0,1,0.01,16).postln;
 ~sl10b=Knob.new(~vw, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linexp(0,1,0.00001,2pi-(2pi/~silver)).postln;
+value1=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 ~incr1=value1;
 ~rotationx=value1;
+~log2.(value1.asString);
 });
 ~st10b=StaticText(~vw,Rect(450,(50+sk+50+25+sk),sk+20,sk)).string_("rx")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1735,9 +1798,10 @@ value1=obj.value.linexp(0,1,0.00001,2pi-(2pi/~silver)).postln;
 ~sl11b=Knob.new(~vw, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,0.00001,pi-(pi/~silver)).postln;
+value2=obj.value.linlin(0,1,0,2pi-(2pi/~gold)).round(1/1024).postln;
 ~incr2=value2;
 ~rotationy=value2;
+~log2.(value2.asString);
 });
 ~st11b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("ry")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1748,6 +1812,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,0,16256*3).round(1).asInteger.postln;
 ~cb=value;
+~log2.(value.asString);
 });
 ~st12b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fund")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1758,6 +1823,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.001,2pi).postln;
 ~gainb=value;
+~log2.(value.asString);
 });
 ~st13b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("gain")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1768,6 +1834,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~roomb=value;
+~log2.(value.asString);
 });
 ~st14b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1778,6 +1845,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.01,1).postln;
 ~mixb=value;
+~log2.(value.asString);
 });
 ~st15b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revmix")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1788,6 +1856,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse1=value;
+~log2.(value.asString);
 });
 ~st16b=StaticText(~vw,Rect(50,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse1")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1798,6 +1867,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,1.01,1000).postln;
 ~fuse2=value;
+~log2.(value.asString);
 });
 ~s117b=StaticText(~vw,Rect(150,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse2")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1808,6 +1878,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
+~log2.(value.asString);
 ~pan2=obj.value.linexp(0,1,0.00001,20).postln;
 });
 ~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("fuse")
@@ -1819,6 +1890,7 @@ arg obj;
 var value;
 value=obj.value.linlin(0,1,1,4).round(1).postln;
 ~harm=value;
+~log2.(value.asString);
 });
 ~s119b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("harm")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
@@ -1829,6 +1901,7 @@ arg obj;
 var value,v;
 value=obj.value.linexp(0,1,0.01,10).postln;
 ~dist2=value;
+~log2.(value.asString);
 });
 ~sl20b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("dist")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
