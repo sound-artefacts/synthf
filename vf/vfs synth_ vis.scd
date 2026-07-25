@@ -1,14 +1,17 @@
 //image plotter
 ~lin=100;
-~shad=8;
+~shad=0.2;
+~do=1;
+~clp=2;
+~da=500;
 ({
-var w,u,size=1000,diameter=400,n=0,m=0,k=0;
+var w,u,size=1000,diameter=300,n=0,m=0,k=0;
 var r_az = 0.0,r_el = 0.0,az,el,cp,protaz,protel;
-var point,perspective,dist=600,depth=2,mag=1;
+var point,perspective,dist=200,depth=2,mag=1;
 var rx = 0.0,ry = 0.0,rz = 0.0,rate=0.01;
 var plane,pointx,pointy;
 var d_o=4,lined=25,run = true,tilt=0.15pi;
-var wave=12,sph,ratio1,ratio2,ratio3;
+var wave=12,sph,ratio1,ratio2,ratio3,px,py,pz;
 
 ~verticef=~set;
 w = Window("3d Plotter", Rect(400,100,size,size));
@@ -17,15 +20,18 @@ v = UserView(w, w.view.bounds).background_(Color.black);
 v.drawFunc = {
 Pen.translate(v.bounds.width/2,v.bounds.height/2);
 ///Pen.scale(0.5, 2);
+diameter=~da;
 ~point_cloud=[];
-d_o=1;
-wave=(~controlBus_1.getSynchronous.abs+~controlBus_2.getSynchronous.abs)*~shad;
+d_o=~do;
+wave=~shad;
 dist=~dist1*diameter;
-lined=(~controlBus_1.getSynchronous.abs+~controlBus_2.getSynchronous.abs)*~lin;
+lined=~controlBus_1.getSynchronous*~lin;
 n=0;
 (~verticef).do {
-//mag=(Cartesian(~magxf.[n],~magyf.[n],~magzf.[n]).rho/(2.sqrt));
-point = Cartesian(~cx.[n],~cy.[n],~cz.[n])*diameter*mag;
+px=(~cx.[n]*diameter).clip2(diameter/~clp);
+py=(~cy.[n]*diameter).clip2(diameter/~clp);
+pz=(~cz.[n]*diameter).clip2(diameter/~clp);
+point = Cartesian(px,py,pz);
 //////remaping
 plane=Complex(point.x,point.y);
 cp=Polar(point.z,plane.theta);
@@ -51,7 +57,7 @@ n = 0;m=0;k = 0;
 (~point_cloud.size).do {
 var m = n + 1;
 (~point_cloud.size - n - 1).do {
-Pen.width = perspective.clip(2,1.0)*d_o/wave;
+Pen.width = perspective*wave;
 Pen.fillColor = Color.white.alpha_(perspective.clip(0.1,1.0));
 Pen.strokeColor = Color.white.alpha_(perspective.clip(0.1,1.0));
 (if(~point_cloud[n].dist(~point_cloud[m]) < lined)
