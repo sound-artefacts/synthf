@@ -389,7 +389,7 @@ var x, y, z,rot,mag=1;
 az = ~azr.[n];
 el = ~elr.[n];
 mag=1;
-//mag=Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho;
+mag=Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho;
 rot=Spherical(mag,az,el).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
 //x = cos(el) * cos(az);
 //y = cos(el) * sin(az);
@@ -480,14 +480,14 @@ nn=1.neg;
 SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1,harm=1;
+busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective,revm;
+var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -511,9 +511,20 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-x = (harm*cos(el)*cos(az))+(cos(harm*el)*cos(harm*az));
-y = (harm*cos(el)*sin(az))+(cos(harm*el)*sin(harm*az));
-z = (harm*sin(el))+(sin(harm*el));
+r1 = SinOsc.kr(rx);
+r2 = SinOsc.kr(ry);
+r3 = SinOsc.kr(rz);
+
+aaz = atan2(r1, r2);
+eel = asin(r3);
+
+th=(az+aaz).wrap(0,2pi);
+ph=(az+eel).wrap(0.5pi,0.5pi.neg);
+
+x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
+y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
+z = (harm*sin(ph))+(sin(harm*ph));
+
 
 ///osc
 mp_x = (sc)  * x;
@@ -705,14 +716,14 @@ Out.ar(busArray.[11],LeakDC.ar(sig3*env*g_ch4));
 SynthDef.new(\synthb,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1,harm=1;
+busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=4,perspective,revm;
+var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -738,6 +749,21 @@ heavy=2.pow(drive.lag(0.01)/16256);
 x = (harm*cos(el)*cos(az))+(cos(harm*el)*cos(harm*az));
 y = (harm*cos(el)*sin(az))+(cos(harm*el)*sin(harm*az));
 z = (harm*sin(el))+(sin(harm*el));
+
+r1 = SinOsc.kr(rx);
+r2 = SinOsc.kr(ry);
+r3 = SinOsc.kr(rz);
+
+aaz = atan2(r1, r2);
+eel = asin(r3);
+
+th=(az+aaz).wrap(pi,pi.neg);
+ph=(az+eel).wrap(0.5pi,0.5pi.neg);
+
+x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
+y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
+z = (harm*sin(ph))+(sin(harm*ph));
+
 
 ///osc
 mp_x = (sc)  * x;
@@ -1109,7 +1135,7 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 {
 Routine({loop{
 ~nn=~set.rand;
-(~dursum).wait; // frame duration
+(~seqt1.next).wait; // frame duration
 };
 }).play(~clock);
 }.defer
@@ -1213,7 +1239,7 @@ Pbind(\instrument, \synth,
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\dist, Pfunc { ~dist1 },
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating,inf),\elosc, Pfunc { ~pan1 },
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},
-\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},\harm,Pfunc{ ~harm},
+\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},\harm,Pfunc{ ~harm},\rx,Pfunc{~rotationx},\ry,Pfunc{ ~rotationy},\rz,Pfunc{ ~rotationz},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attack }, \dicay, Pfunc { ~decay }, \ssc, Pfunc{~ssc};
@@ -1226,7 +1252,7 @@ Pbind(\instrument, \synthb,
 \gain,Pfunc { ~gainb }, \sc, Pfunc { ~scb },\drive, Pfunc { ~driveb },\dist, Pfunc { ~dist2},
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating.reverse,inf),\elosc, Pfunc { ~pan2 },
 \c, Pfunc { ~cb },\mix, Pfunc{~mixb},\rect,Pfunc{~rectb},\mag1,Pfunc{~shape2},
-\az, Pfunc{~azimuth1},\el,Pfunc{~elevation1},\harm,Pfunc{ ~harm},
+\az, Pfunc{~azimuth1},\el,Pfunc{~elevation1},\harm,Pfunc{ ~harm},\rx,Pfunc{~rotationx},\ry,Pfunc{ ~rotationy},\rz,Pfunc{ ~rotationz},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
@@ -1372,7 +1398,7 @@ value=obj.value.linlin(0,1,1/32,32).round(1/16).postln;
 ~sl2=Knob.new(~vw1, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value=obj.value.linexp(0,1,0.0001,1).postln;
 //~rotation=value;
 ~rotationz=value;
 ~log1.(value.asString);
@@ -1463,7 +1489,7 @@ value1=obj.value.linexp(0,1,0.01,16).postln;
 ~sl10=Knob.new(~vw1, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value1=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr1=value1;
 ~rotationx=value1;
 ~log1.(value1.asString);
@@ -1475,7 +1501,7 @@ value1=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
 ~sl11=Knob.new(~vw1, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value2=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr2=value2;
 ~rotationy=value2;
 ~log1.(value2.asString);
@@ -1565,7 +1591,7 @@ value=obj.value.linexp(0,1,16256,1);
 ~s119=Knob.new(~vw1, Rect.new(350,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,1,4).round(1).postln;
+value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~harm=value;
 ~log1.(value.asString);
 });
@@ -1724,7 +1750,7 @@ value=obj.value.linlin(0,1,1/32,32).round(1/16).postln;
 ~sl2b=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value=obj.value.linexp(0,1,0.0001,1).postln;
 //~rotation=value;
 ~rotationz=value;
 ~log2.(value.asString);
@@ -1815,7 +1841,7 @@ value1=obj.value.linexp(0,1,0.01,16).postln;
 ~sl10b=Knob.new(~vw, Rect.new(450,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value1=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr1=value1;
 ~rotationx=value1;
 ~log2.(value1.asString);
@@ -1827,7 +1853,7 @@ value1=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
 ~sl11b=Knob.new(~vw, Rect.new(50,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linlin(0,1,0,(2pi-(2pi/((1+5.sqrt)/2)))).postln;
+value2=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr2=value2;
 ~rotationy=value2;
 ~log2.(value2.asString);
@@ -1917,7 +1943,7 @@ value=obj.value.linexp(0,1,16256,1);
 ~s119b=Knob.new(~vw, Rect.new(350,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,1,4).round(1).postln;
+value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~harm=value;
 ~log2.(value.asString);
 });
