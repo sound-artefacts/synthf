@@ -133,6 +133,6 @@ fuse2: coordinates of timbral data tensor, fuse to less coordinates, (fuse to on
 
 fuse: pan speed for spat
 
-harm: spherical harmonic on timbral data tensor
+harm: spherical harmonic on timbral data tensor and cardioid
 
-~mod: timbral data exstraction seed
+dist: perspective distance (extreme fisheye to fronal isometric perspective)
