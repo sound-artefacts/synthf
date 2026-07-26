@@ -480,16 +480,18 @@ nn=1.neg;
 SynthDef.new(\synth,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1;
+busArray = #[0,1,2,3],dist=1,harm=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
-var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
+var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
 var vanish=2,perspective,revm;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
+gain=gain*harm.reciprocal;
+gain=gain*50;
 
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
@@ -509,19 +511,23 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
+x = (harm*cos(el)*cos(az))+(cos(harm*el)*cos(harm*az));
+y = (harm*cos(el)*sin(az))+(cos(harm*el)*sin(harm*az));
+z = (harm*sin(el))+(sin(harm*el));
+
 ///osc
-mp_x = (sc)  * cos(el) * cos(az);
-mp_y = (sc)  * cos(el) * sin(az);
-mp_z = (sc)  * sin(el);
+mp_x = (sc)  * x;
+mp_y = (sc)  * y;
+mp_z = (sc)  * z;
 
-mps_x = (ssc) * cos(el) * cos(az);
-mps_y = (ssc) * cos(el) * sin(az);
-mps_z = (ssc) * sin(el);
+mps_x = (ssc) * x;
+mps_y = (ssc) * y;
+mps_z = (ssc) * z;
 
 
-mpf_x =pi* cos(el) * cos(az);
-mpf_y =pi* cos(el) * sin(az);
-mpf_z =pi* sin(el);
+mpf_x =pi* x;
+mpf_y =pi* y;
+mpf_z =pi* z;
 
 //perspective
 //mp_x=mp_x*((sc*dist)/((sc*dist)+mp_z+((sc*dist)/vanish)));
@@ -615,6 +621,11 @@ sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 
+////spherical harmonics
+mag_x=((Complex(cos(az*harm),cos(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
+mag_y=((Complex(sin(az*harm),sin(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
+mag_z=(Complex(sin(el*harm),sin(el*harm)).rho/(2.sqrt));
+
 /////spat
 (
 g_ch1=
@@ -658,15 +669,17 @@ g_ch4=
  sig3.range(0.001,1)*sin(~el.[3]));
 );
 
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2)));
+
+
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1*mag_x)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2*mag_y)));
 //Out.ar(busArray.[2],LeakDC.ar(sig1*env*(g_ch3)));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*(g_ch4)));
-//Out.ar(busArray.[2],LeakDC.ar(sig3*env));
+//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
-Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
-Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env)));
-Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env)));
+Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env*mag_x)));
+Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env*mag_y)));
+Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env*mag_z)));
 
 ///comment out the above parentheses and uncomment the below to use the synth on
 ///threefold speaker wavefield quad spat (12ch)/// to puput stereo sets (x,y) not use z channel as ouput (2,5,etc), sig3.
@@ -692,16 +705,18 @@ Out.ar(busArray.[11],LeakDC.ar(sig3*env*g_ch4));
 SynthDef.new(\synthb,{
 arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
-busArray = #[0,1,2,3],dist=1;
+busArray = #[0,1,2,3],dist=1,harm=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
-var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf;
+var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
 var vanish=4,perspective,revm;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
+gain=gain*harm.reciprocal;
+gain=gain*50;
 
 signal = Signal.sineFill(~signalSizee, ~arraye, [0]);
 signal = signal.rotate(signal.size div: 2);
@@ -720,19 +735,23 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
+x = (harm*cos(el)*cos(az))+(cos(harm*el)*cos(harm*az));
+y = (harm*cos(el)*sin(az))+(cos(harm*el)*sin(harm*az));
+z = (harm*sin(el))+(sin(harm*el));
+
 ///osc
-mp_x = (sc)  * cos(el) * cos(az);
-mp_y = (sc)  * cos(el) * sin(az);
-mp_z = (sc)  * sin(el);
+mp_x = (sc)  * x;
+mp_y = (sc)  * y;
+mp_z = (sc)  * z;
 
-mps_x = (ssc) * cos(el) * cos(az);
-mps_y = (ssc) * cos(el) * sin(az);
-mps_z = (ssc) * sin(el);
+mps_x = (ssc) * x;
+mps_y = (ssc) * y;
+mps_z = (ssc) * z;
 
 
-mpf_x =pi* cos(el) * cos(az);
-mpf_y =pi* cos(el) * sin(az);
-mpf_z =pi* sin(el);
+mpf_x =pi* x;
+mpf_y =pi* y;
+mpf_z =pi* z;
 
 //perspective
 //mp_x=mp_x*((sc*dist)/((sc*dist)+mp_z+((sc*dist)/vanish)));
@@ -825,6 +844,11 @@ sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 
+////spherical harmonics
+mag_x=((Complex(cos(az*harm),cos(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
+mag_y=((Complex(sin(az*harm),sin(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
+mag_z=(Complex(sin(el*harm),sin(el*harm)).rho/(2.sqrt));
+
 /////spat
 (
 g_ch1=
@@ -868,15 +892,14 @@ g_ch4=
  sig3.range(0.001,1)*sin(~el.[3]));
 );
 
-(
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch3)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch4)));
-//Out.ar(busArray.[2],LeakDC.ar(sig3*env));
-);
 
-Out.kr(~controlBus_4.index,Amplitude.kr((sig1*env)));
-Out.kr(~controlBus_5.index,Amplitude.kr((sig2*env)));
-Out.kr(~controlBus_6.index,Amplitude.kr((sig3*env)));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1*mag_x)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2*mag_y)));
+//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
+
+Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env*mag_x)));
+Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env*mag_y)));
+Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env*mag_z)));
 
 ///comment out the above parentheses and uncomment the below to use the synth on
 ///threefold speaker wavefield quad spat (12ch)/// to puput stereo sets (x,y) not use z channel as ouput (2,5,etc), sig3.
@@ -1190,7 +1213,7 @@ Pbind(\instrument, \synth,
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\dist, Pfunc { ~dist1 },
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating,inf),\elosc, Pfunc { ~pan1 },
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},
-\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},
+\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},\harm,Pfunc{ ~harm},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attack }, \dicay, Pfunc { ~decay }, \ssc, Pfunc{~ssc};
@@ -1203,7 +1226,7 @@ Pbind(\instrument, \synthb,
 \gain,Pfunc { ~gainb }, \sc, Pfunc { ~scb },\drive, Pfunc { ~driveb },\dist, Pfunc { ~dist2},
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating.reverse,inf),\elosc, Pfunc { ~pan2 },
 \c, Pfunc { ~cb },\mix, Pfunc{~mixb},\rect,Pfunc{~rectb},\mag1,Pfunc{~shape2},
-\az, Pfunc{~azimuth1},\el,Pfunc{~elevation1},
+\az, Pfunc{~azimuth1},\el,Pfunc{~elevation1},\harm,Pfunc{ ~harm},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
