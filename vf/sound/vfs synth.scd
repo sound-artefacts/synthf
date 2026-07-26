@@ -89,7 +89,7 @@ var waveSpeed = 0.5,waveFreq = 3,amp=0.5;
 var n=0,rx=0,ry=0,rz=0;
 var theta,phi,wave,anglex,angley,anglez;
 
-~rotation=1;~rotationx=0;~rotationy=0;~rotationz=0;~rx=0;~ry=0;~rz=0;
+~rotation=1;~rotationx=0;~rotationy=0;~rotationz=0;~rx=0;~ry=0;~rz=0;~rotationx1=0;~rotationy1=0;~rotationz1=0;
 ~azr=[];~elr=[];~magx=[];~magy=[];~magz=[];~qx=[];
 ~cx = [];~cy = [];~cz = [];
 //g=7;s=7;
@@ -518,8 +518,8 @@ r3 = SinOsc.kr(rz);
 aaz = atan2(r1, r2);
 eel = asin(r3);
 
-th=(az+aaz).wrap(0,2pi);
-ph=(az+eel).wrap(0.5pi,0.5pi.neg);
+th=(az+aaz).wrap(pi.neg,pi);
+ph=(el+eel).wrap(0.5pi.neg,0.5pi);
 
 x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
 y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
@@ -757,8 +757,8 @@ r3 = SinOsc.kr(rz);
 aaz = atan2(r1, r2);
 eel = asin(r3);
 
-th=(az+aaz).wrap(pi,pi.neg);
-ph=(az+eel).wrap(0.5pi,0.5pi.neg);
+th=(az+aaz).wrap(pi.neg,pi);
+ph=(el+eel).wrap(0.5pi.neg,0.5pi);
 
 x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
 y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
@@ -1239,7 +1239,7 @@ Pbind(\instrument, \synth,
 \gain,Pfunc { ~gain }, \sc, Pfunc { ~sc },\drive, Pfunc { ~drive },\dist, Pfunc { ~dist1 },
 \au,Pseq([0,1,4,3,6,5,9],inf),\sb,Pseq(~alternating,inf),\elosc, Pfunc { ~pan1 },
 \c, Pfunc { ~c },\mix, Pfunc{~mix},\rect,Pfunc{~rect},\mag1,Pfunc{~shape1},
-\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},\harm,Pfunc{ ~harm},\rx,Pfunc{~rotationx},\ry,Pfunc{ ~rotationy},\rz,Pfunc{ ~rotationz},
+\az, Pfunc{ ~azimuth},\el,Pfunc{ ~elevation},\harm,Pfunc{ ~harm},\rx,Pfunc{~rotationx1},\ry,Pfunc{ ~rotationy1},\rz,Pfunc{ ~rotationz1},
 \s1,Pfunc{(~vertices-1).rand.round(1).asInteger},\s2,Pfunc{(~vertices-1).rand.round(1).asInteger}
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attack }, \dicay, Pfunc { ~decay }, \ssc, Pfunc{~ssc};
@@ -1400,7 +1400,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.0001,1).postln;
 //~rotation=value;
-~rotationz=value;
+~rotationz1=value;
 ~log1.(value.asString);
 });
 ~st2=StaticText(~vw1,Rect(150,50+sk,sk+20,sk)).string_("rz")
@@ -1491,7 +1491,7 @@ arg obj;
 var value1,value2;
 value1=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr1=value1;
-~rotationx=value1;
+~rotationx1=value1;
 ~log1.(value1.asString);
 });
 ~st10=StaticText(~vw1,Rect(450,(50+sk+50+25+sk),sk+20,sk)).string_("rx")
@@ -1503,7 +1503,7 @@ arg obj;
 var value1,value2;
 value2=obj.value.linexp(0,1,0.0001,1).postln;
 ~incr2=value2;
-~rotationy=value2;
+~rotationy1=value2;
 ~log1.(value2.asString);
 });
 ~st11=StaticText(~vw1,Rect(50,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("ry")
