@@ -383,14 +383,15 @@ val * wave;
 
 n=0;
 ~set.do{
-var az, el;
+var az, el,rr;
 var x, y, z,rot,mag=1;
 
 az = ~azr.[n];
 el = ~elr.[n];
 mag=1;
 mag=Cartesian(~magx.[n],~magy.[n],~magz.[n]).rho;
-rot=Spherical(mag,az,el).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
+rr=Spherical(1,az,el).rotateYZ(0.5pi);
+rot=Spherical(mag,rr.theta,rr.phi).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
 //x = cos(el) * cos(az);
 //y = cos(el) * sin(az);
 //z = sin(el);
@@ -417,9 +418,9 @@ Routine({loop{
 ~rz=(~rz +rot.z).wrap(0,2pi);
 )*/
 (
-~rx=(~rx +~rotationx).wrap(0,2pi);
-~ry=(~ry +~rotationy).wrap(0,2pi);
-~rz=(~rz +~rotationz).wrap(0,2pi);
+~rx=(~rx +(~rotationx1*5)).wrap(0,2pi);
+~ry=(~ry +(~rotationy1*5)).wrap(0,2pi);
+~rz=(~rz +(~rotationz1*5)).wrap(0,2pi);
 );
 (~timbr_dur).wait; // frame duration
 };
@@ -511,12 +512,13 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-r1 = SinOsc.kr(rx);
-r2 = SinOsc.kr(ry);
-r3 = SinOsc.kr(rz);
 
-aaz = atan2(r1, r2);
-eel = asin(r3);
+r1 = SinOsc.kr(rx,mul:pi);
+r2 = SinOsc.kr(ry,90.degrad,mul:pi);
+r3 = SinOsc.kr(rz,mul:0.5pi);
+
+aaz = (r1+r2).wrap(pi.neg,pi);
+eel = r3;
 
 th=(az+aaz).wrap(pi.neg,pi);
 ph=(el+eel).wrap(0.5pi.neg,0.5pi);
@@ -640,50 +642,50 @@ mag_z=(Complex(sin(el*harm),sin(el*harm)).rho/(2.sqrt));
 /////spat
 (
 g_ch1=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
 sig1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(ph)*
  sig3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(mag1*sig1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(ph)*
  sig3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(mag1*sig3.abs.range(0.001,1)*sin(ph)*
  sig3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(mag1*sig1.abs.range(0.001,1)*cos(el)*cos((az+pan).wrap(pi.neg,pi))*
+(sig1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
  sig1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(mag1*sig2.abs.range(0.001,1)*cos(el)*sin((az+pan).wrap(pi.neg,pi))*
+(sig2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
  sig2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
-(mag1*sig3.abs.range(0.001,1)*sin(el)*
+(sig3.abs.range(0.001,1)*sin(ph)*
  sig3.range(0.001,1)*sin(~el.[3]));
 );
 
+//(g_ch1*mag_x)
 
-
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1*mag_x)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2*mag_y)));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*((g_ch1+g_ch2)*mag_x)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*((g_ch3+g_ch4)*mag_y)));
 //Out.ar(busArray.[2],LeakDC.ar(sig1*env*(g_ch3)));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*(g_ch4)));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
@@ -746,16 +748,12 @@ expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-x = (harm*cos(el)*cos(az))+(cos(harm*el)*cos(harm*az));
-y = (harm*cos(el)*sin(az))+(cos(harm*el)*sin(harm*az));
-z = (harm*sin(el))+(sin(harm*el));
+r1 = SinOsc.kr(rx,mul:pi);
+r2 = SinOsc.kr(ry,90.degrad,mul:pi);
+r3 = SinOsc.kr(rz,mul:0.5pi);
 
-r1 = SinOsc.kr(rx);
-r2 = SinOsc.kr(ry);
-r3 = SinOsc.kr(rz);
-
-aaz = atan2(r1, r2);
-eel = asin(r3);
+aaz = (r1+r2).wrap(pi.neg,pi);
+eel = r3;
 
 th=(az+aaz).wrap(pi.neg,pi);
 ph=(el+eel).wrap(0.5pi.neg,0.5pi);
@@ -919,8 +917,8 @@ g_ch4=
 );
 
 
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*(g_ch1*mag_x)));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*(g_ch2*mag_y)));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*((g_ch1+g_ch2)*mag_x)));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*((g_ch3+g_ch4)*mag_y)));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env*mag_x)));
@@ -1135,7 +1133,7 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 {
 Routine({loop{
 ~nn=~set.rand;
-(~seqt1.next).wait; // frame duration
+(~dursum/4).wait; // frame duration
 };
 }).play(~clock);
 }.defer
@@ -1257,7 +1255,7 @@ Pbind(\instrument, \synthb,
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
 ));
-~patternb.play(~clock);
+//~patternb.play(~clock);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
@@ -1443,7 +1441,7 @@ value2=obj.value.linlin(0,1,1,8).postln;
 ~sl6=Knob.new(~vw1, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
+value1=obj.value.linlin(0,1,(16256*4).neg,0).round(1).asInteger.postln;
 ~drive=value1;
 ~log1.(value1.asString);
 });
@@ -1602,7 +1600,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,10).postln;
+value=obj.value.linexp(0,1,0.01,1000).postln;
 ~dist1=value;
 ~log1.(value.asString);
 });
@@ -1795,7 +1793,7 @@ value2=obj.value.linlin(0,1,1,8).postln;
 ~sl6b=Knob.new(~vw, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,(16256*4).neg,(16256)).round(1).asInteger.postln;
+value1=obj.value.linlin(0,1,(16256*4).neg,0).round(1).asInteger.postln;
 ~driveb=value1;
 ~log2.(value1.asString);
 });
@@ -1954,7 +1952,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20b=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,10).postln;
+value=obj.value.linexp(0,1,0.01,1000).postln;
 ~dist2=value;
 ~log2.(value.asString);
 });

@@ -1,9 +1,9 @@
 //image plotter
-~lin=10;
-~shad=0.1;
+~lin=20;
+~shad=0.01;
 ~do=1;
 ~clp=3;
-~da=500;
+~da=1000;
 //~harm=1;
 ({
 var w,u,size=1000,diameter=300,n=0,m=0,k=0;
