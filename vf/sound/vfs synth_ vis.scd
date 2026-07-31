@@ -1,16 +1,16 @@
 //image plotter
-~lin=20;
-~shad=0.01;
+~lin=60;
+~shad=0.25;
 ~do=1;
 ~clp=3;
-~da=1000;
+~da=500;
 //~harm=1;
 ({
 var w,u,size=1000,diameter=300,n=0,m=0,k=0;
 var r_az = 0.0,r_el = 0.0,az,el,cp,protaz,protel;
 var point,perspective,dist=200,depth=2,mag=1;
 var rx = 0.0,ry = 0.0,rz = 0.0,rate=0.01;
-var plane,pointx,pointy,x,y,z;
+var plane,pointx,pointy,x,y,z,rr,rot;
 var d_o=4,lined=25,run = true,tilt=0.15pi;
 var wave=12,sph,ratio1,ratio2,ratio3,px,py,pz;
 
@@ -27,18 +27,26 @@ diameter=~da;
 d_o=~do;
 wave=~shad;
 dist=~dist1*diameter;
-lined=~controlBus_1.getSynchronous*~lin;
+lined=~lin;
 n=0;
+
+
 (~verticef).do {
-x = (~harm*cos(~elr.[n])*cos(~azr.[n]))+(cos(~harm*~elr.[n])*cos(~harm*~azr.[n]));
-y = (~harm*cos(~elr.[n])*sin(~azr.[n]))+(cos(~harm*~elr.[n])*sin(~harm*~azr.[n]));
-z = (~harm*sin(~elr.[n]))+(sin(~harm*~elr.[n]));
+
+rot=Spherical(1,~azr.[n],~elr.[n]);
+rot=rot.rotateYZ(~controlBus_1.getSynchronous.reciprocal/2pi).rotateXZ(~controlBus_2.getSynchronous.reciprocal/2pi).rotateXY(~controlBus_3.getSynchronous.reciprocal/2pi);
+
+x = (~harm*cos(rot.phi)*cos(rot.theta))+(cos(~harm*rot.phi)*cos(~harm*rot.theta));
+y = (~harm*cos(rot.phi)*sin(rot.theta))+(cos(~harm*rot.phi)*sin(~harm*rot.theta));
+z = (~harm*sin(rot.phi))+(sin(~harm*rot.phi));
+
 
 px=((~cx.[n]*diameter*~harm.reciprocal)*x).clip2(diameter/~clp);
 py=((~cy.[n]*diameter*~harm.reciprocal)*y).clip2(diameter/~clp);
 pz=((~cz.[n]*diameter*~harm.reciprocal)*z).clip2(diameter/~clp);
 
 point = Cartesian(px,py,pz);
+
 //////remaping
 plane=Complex(point.x,point.y);
 cp=Polar(point.z,plane.theta);
