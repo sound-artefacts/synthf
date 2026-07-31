@@ -473,7 +473,7 @@ nn=1.neg;
 );
 
 ////spat
-~az=[0,0.25pi,0.75pi,pi];
+~az=[0pi,0.25pi,0.75pi.neg,pi];
 ~el=[0.125pi,0.125pi,0.125pi,0.125pi];
 /////////////////////////////////////////////////////////////////////////////////////////////////////sound
 (
@@ -487,7 +487,7 @@ var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr;
+var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -505,16 +505,24 @@ enva = Env(rip.asArray, times);
 env = EnvGen.ar(enva,doneAction:2)*gain;
 //env = EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
 
-pan=LFNoise1.ar(elosc,pi);
-
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-rrr=Spherical(pi,0.25,0.125pi);
+select=Spherical(~vertices,az,el);
+rrr=Spherical(pi,0.5pi,0.125pi);
+//rrr=Spherical(pi,Select.kr(select.x.abs.round(1),~azth),Select.kr(select.x.abs.round(1),~elth));
 r1 = SinOsc.kr(rx.lag(0.1),rrr.x,mul:pi);
 r2 = SinOsc.kr(ry.lag(0.1),rrr.y,mul:pi);
 r3 = SinOsc.kr(rz.lag(0.1),rrr.z,mul:0.5pi);
+
+//pan=LFNoise1.ar(elosc,pi);
+pan=(r1+r2+r3)/mix.reciprocal/2pi;
+pan=pan.abs;
+pan1=SinOsc.ar(pan,~az.[0]).range(pi.neg,pi).lag(0.01);
+pan2=SinOsc.ar(pan,~az.[1]).range(pi.neg,pi).lag(0.01);
+pan3=SinOsc.ar(pan,~az.[2]).range(pi.neg,pi).lag(0.01);
+pan4=SinOsc.ar(pan,~az.[3]).range(pi.neg,pi).lag(0.01);
 
 
 aaz = (r1+r2).wrap(pi.neg,pi);
@@ -647,52 +655,59 @@ sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 /////spat
 (
 g_ch1=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan1).wrap(pi.neg,pi))*
 c1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan1).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan2).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan2).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan3).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan3).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan4).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan4).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[3]));
 );
 
-//(g_ch1*mag_x)
 
-Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-Out.ar(busArray.[0],LeakDC.ar(sig2*env));
-//Out.ar(busArray.[2],LeakDC.ar(sig1*env*(g_ch3)));
-//Out.ar(busArray.[3],LeakDC.ar(sig2*env*(g_ch4)));
+////pan
+Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
+Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
+Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch2));
+//Out.ar(busArray.[2],LeakDC.ar(sig1*env*g_ch3));
+//Out.ar(busArray.[2],LeakDC.ar(sig2*env*g_ch3));
+//Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
+//Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
+//no pan
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env));
+//Out.ar(busArray.[0],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
@@ -730,7 +745,7 @@ var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
-var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr;
+var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -747,16 +762,25 @@ times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dic
 enva = Env(rip.asArray, times);
 env = EnvGen.ar(enva,doneAction:2)*gain*2;
 
-pan=LFNoise1.ar(elosc,pi.neg);
-
 expansion=2.pow(c.lag(0.01)/16256);
 fund=(fu*(9/8))*expansion;
 heavy=2.pow(drive.lag(0.01)/16256);
 
-rrr=Spherical(pi,0.25,0.125pi);
+select=Spherical(~vertices,az,el);
+//rrr=Spherical(pi,0.5pi,0.125pi);
+rrr=Spherical(pi,Select.kr(select.x.abs.round(1),~azth),Select.kr(select.x.abs.round(1),~elth));
 r1 = SinOsc.kr(rx.lag(0.1),rrr.x,mul:pi);
 r2 = SinOsc.kr(ry.lag(0.1),rrr.y,mul:pi);
 r3 = SinOsc.kr(rz.lag(0.1),rrr.z,mul:0.5pi);
+
+//pan=LFNoise1.ar(elosc,pi);
+pan=(r1+r2+r3)/mix.reciprocal/2pi;
+//pan=pan.abs;
+pan1=SinOsc.ar(pan,~az.[0]).range(pi.neg,pi).lag(0.01);
+pan2=SinOsc.ar(pan,~az.[1]).range(pi.neg,pi).lag(0.01);
+pan3=SinOsc.ar(pan,~az.[2]).range(pi.neg,pi).lag(0.01);
+pan4=SinOsc.ar(pan,~az.[3]).range(pi.neg,pi).lag(0.01);
+
 
 aaz = (r1.lag(0.1)+r2.lag(0.1)).wrap(pi.neg,pi);
 eel = r3.lag(0.1);
@@ -882,40 +906,40 @@ sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 /////spat
 (
 g_ch1=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan1).wrap(pi.neg,pi))*
 c1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan1).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan2).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan2).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan3).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan3).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
  c3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan4).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan4).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
 (c3.abs.range(0.001,1)*sin(ph)*
