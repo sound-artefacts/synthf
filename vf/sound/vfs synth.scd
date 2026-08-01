@@ -417,9 +417,9 @@ Routine({loop{
 ~rz=(~rz +rot.z).wrap(0,2pi);
 )*/
 (
-~rx=(~rx +(~rotationx1*5)).wrap(0,2pi);
-~ry=(~ry +(~rotationy1*5)).wrap(0,2pi);
-~rz=(~rz +(~rotationz1*5)).wrap(0,2pi);
+~rx=(~rx +(~rotationx1)).wrap(0,2pi);
+~ry=(~ry +(~rotationy1)).wrap(0,2pi);
+~rz=(~rz +(~rotationz1)).wrap(0,2pi);
 );
 (~timbr_dur).wait; // frame duration
 };
@@ -449,17 +449,17 @@ wt = signal.asWavetable;
 }.value;
 );
 (
-~note=(5*7);
-~note10=(5*7);
+~note=(5*3);
+~note10=(5*3);
 ~num=[0,0,5,7,12,17,19,24,29,31,48,53,55,96];
-~note=13;
+//~note=13;
 (
 {
 var nn=1.neg;
 ~scale=~note.collect{nn=nn+1;Scale.dorian.performDegreeToKey(nn,12)};
 }.value;
 );
-~octaves=2;
+~octaves=3;
 (
 {
 var nn=1.neg,scale1,scale2;
@@ -475,6 +475,10 @@ nn=1.neg;
 ////spat
 ~az=[0pi,0.25pi,0.75pi.neg,pi];
 ~el=[0.125pi,0.125pi,0.125pi,0.125pi];
+(
+~az=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
+~el=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
+);
 /////////////////////////////////////////////////////////////////////////////////////////////////////sound
 (
 SynthDef.new(\synth,{
@@ -482,11 +486,11 @@ arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0,mrange=1,lim=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
-var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
-var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
+var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,pen;
+var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan,pan11,pan22,pan33,pan44;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
-var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
+var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz,view;
 var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
@@ -505,13 +509,14 @@ enva = Env(rip.asArray, times);
 env = EnvGen.ar(enva,doneAction:2)*gain;
 //env = EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
 
-expansion=2.pow(c.lag(0.01)/16256);
+expansion=2.pow(c.lag(0.01)/992);
 fund=(fu*(9/8))*expansion;
-heavy=2.pow(drive.lag(0.01)/16256);
+heavy=2.pow(drive.lag(0.01)/992);
 
 select=Spherical(~vertices,az,el);
-rrr=Spherical(pi,0.5pi,0.125pi);
-//rrr=Spherical(pi,Select.kr(select.x.abs.round(1),~azth),Select.kr(select.x.abs.round(1),~elth));
+//rrr=Spherical(pi,0.5pi,0.125pi);
+rrr=Spherical(pi,Select.kr(select.x.abs.round(1),~azth),Select.kr(select.x.abs.round(1),~elth));
+
 r1 = SinOsc.kr(rx.lag(0.1),rrr.x,mul:pi);
 r2 = SinOsc.kr(ry.lag(0.1),rrr.y,mul:pi);
 r3 = SinOsc.kr(rz.lag(0.1),rrr.z,mul:0.5pi);
@@ -523,13 +528,19 @@ pan1=SinOsc.ar(pan,~az.[0]).range(pi.neg,pi).lag(0.01);
 pan2=SinOsc.ar(pan,~az.[1]).range(pi.neg,pi).lag(0.01);
 pan3=SinOsc.ar(pan,~az.[2]).range(pi.neg,pi).lag(0.01);
 pan4=SinOsc.ar(pan,~az.[3]).range(pi.neg,pi).lag(0.01);
+pan11=SinOsc.ar(pan,~el.[0]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan22=SinOsc.ar(pan,~el.[1]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan33=SinOsc.ar(pan,~el.[2]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan44=SinOsc.ar(pan,~el.[3]).range(0.5pi.neg,0.5pi).lag(0.01);
 
+//aaz = (r1+r2).wrap(pi.neg,pi);
+//eel = r3.lag(0.1);
 
-aaz = (r1+r2).wrap(pi.neg,pi);
-eel = r3.lag(0.1);
+th=(az+r3.lag(0.01)).wrap(pi.neg,pi);
+ph=(el+r3.lag(0.01)).wrap(0.5pi.neg,0.5pi);
 
-th=(az+aaz).wrap(pi.neg,pi);
-ph=(el+eel).wrap(0.5pi.neg,0.5pi);
+//th=az.lag(0.01);
+//ph=el.lag(0.01);
 
 x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
 y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
@@ -550,11 +561,12 @@ mpf_x =pi* x;
 mpf_y =pi* y;
 mpf_z =pi* z;
 
-key=~num;
+//key=~num;
+key=~scale;
 
-b_x=2.pow(mp_x.round(1)/16256);
-b_y=2.pow(mp_y.round(1)/16256);
-b_z=2.pow(mp_z.round(1)/16256);
+b_x=2.pow(mp_x.round(1)/992);
+b_y=2.pow(mp_y.round(1)/992);
+b_z=2.pow(mp_z.round(1)/992);
 
 s_x=2.pow(Select.kr(mps_x.round(1).abs,key).asInteger /12);
 s_y=2.pow(Select.kr(mps_y.round(1).abs,key).asInteger /12);
@@ -568,8 +580,10 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = ((~octaves*2)*dist) / (((~octaves*2)*dist) + b_z.reciprocal + (((~octaves*2)*dist)/vanish));
+view=gain/dist;
+perspective = ((~octaves*2)*view) / (((~octaves*2)*view) + z + (((~octaves*2)*view)/vanish));
 revm=perspective.linlin(0,1,1,0);
+perspective.poll;
 //mod_x=mpf_x;
 //mod_y=mpf_y;
 //mod_z=mpf_z;
@@ -588,8 +602,8 @@ revm=perspective.linlin(0,1,1,0);
 //phasex=atan2(mod_x,mod_y);
 //phasey=atan2(mod_y,mod_z);
 //phasez=atan2(mod_z,mod_x);
-phasex=mpf_x;
-phasey=mpf_y;
+phasex=mpf_x*perspective;
+phasey=mpf_y*perspective;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
@@ -601,11 +615,11 @@ SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
 
 ////rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
-(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*10;
+(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*1;
 sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
-(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*10;
+(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*1;
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
-(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
+(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*1;
 
 
 //sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
@@ -651,85 +665,69 @@ sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 
-
 /////spat
+
 (
 g_ch1=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan1).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan11)*cos((th+pan1).wrap(pi.neg,pi))*
 c1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan1).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan11)*sin((th+pan1).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan11)*
  c3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan2).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan22)*cos((th+pan2).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan2).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan22)*sin((th+pan2).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan22)*
  c3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan3).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan33)*cos((th+pan3).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan3).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan33)*sin((th+pan3).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan33)*
  c3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan4).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan44)*cos((th+pan4).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan4).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan44)*sin((th+pan4).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan44)*
  c3.range(0.001,1)*sin(~el.[3]));
 );
 
 
 ////pan
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
-Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch2));
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
+//Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
+//Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
+//Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch2));
 //Out.ar(busArray.[2],LeakDC.ar(sig1*env*g_ch3));
 //Out.ar(busArray.[2],LeakDC.ar(sig2*env*g_ch3));
 //Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
 //no pan
-//Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-//Out.ar(busArray.[0],LeakDC.ar(sig2*env));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env));
+Out.ar(busArray.[0],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
 Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env)));
 Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env)));
 
-///comment out the above parentheses and uncomment the below to use the synth on
-///threefold speaker wavefield quad spat (12ch)/// to puput stereo sets (x,y) not use z channel as ouput (2,5,etc), sig3.
-/*(
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch1));
-Out.ar(busArray.[2],LeakDC.ar(sig3*env*g_ch1));
-Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch2));
-Out.ar(busArray.[4],LeakDC.ar(sig2*env*g_ch2));
-Out.ar(busArray.[5],LeakDC.ar(sig3*env*g_ch2));
-Out.ar(busArray.[6],LeakDC.ar(sig1*env*g_ch3));
-Out.ar(busArray.[7],LeakDC.ar(sig2*env*g_ch3));
-Out.ar(busArray.[8],LeakDC.ar(sig3*env*g_ch3));
-Out.ar(busArray.[9],LeakDC.ar(sig1*env*g_ch4));
-Out.ar(busArray.[10],LeakDC.ar(sig2*env*g_ch4));
-Out.ar(busArray.[11],LeakDC.ar(sig3*env*g_ch4));
-)*/
 
 }).add;
 );
@@ -741,10 +739,10 @@ c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0,mrange=1,lim=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
-var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan;
+var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan,pan11,pan22,pan33,pan44;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
-var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz;
+var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz,view;
 var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
@@ -760,33 +758,41 @@ rip = rip.normalize;
 peak = peak.min(signal.size - 2).max(1);
 times =Array.fill(peak, attack / peak) ++ Array.fill(signal.size - peak - 1, dicay / (signal.size - peak - 1));
 enva = Env(rip.asArray, times);
-env = EnvGen.ar(enva,doneAction:2)*gain*2;
+env = EnvGen.ar(enva,doneAction:2)*gain;
+//env = EnvGen.ar(Env.perc(attack,dicay,gain),doneAction:2);
 
-expansion=2.pow(c.lag(0.01)/16256);
+expansion=2.pow(c.lag(0.01)/992);
 fund=(fu*(9/8))*expansion;
-heavy=2.pow(drive.lag(0.01)/16256);
+heavy=2.pow(drive.lag(0.01)/992);
 
 select=Spherical(~vertices,az,el);
 //rrr=Spherical(pi,0.5pi,0.125pi);
 rrr=Spherical(pi,Select.kr(select.x.abs.round(1),~azth),Select.kr(select.x.abs.round(1),~elth));
+
 r1 = SinOsc.kr(rx.lag(0.1),rrr.x,mul:pi);
 r2 = SinOsc.kr(ry.lag(0.1),rrr.y,mul:pi);
 r3 = SinOsc.kr(rz.lag(0.1),rrr.z,mul:0.5pi);
 
 //pan=LFNoise1.ar(elosc,pi);
 pan=(r1+r2+r3)/mix.reciprocal/2pi;
-//pan=pan.abs;
+pan=pan.abs;
 pan1=SinOsc.ar(pan,~az.[0]).range(pi.neg,pi).lag(0.01);
 pan2=SinOsc.ar(pan,~az.[1]).range(pi.neg,pi).lag(0.01);
 pan3=SinOsc.ar(pan,~az.[2]).range(pi.neg,pi).lag(0.01);
 pan4=SinOsc.ar(pan,~az.[3]).range(pi.neg,pi).lag(0.01);
+pan11=SinOsc.ar(pan,~el.[0]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan22=SinOsc.ar(pan,~el.[1]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan33=SinOsc.ar(pan,~el.[2]).range(0.5pi.neg,0.5pi).lag(0.01);
+pan44=SinOsc.ar(pan,~el.[3]).range(0.5pi.neg,0.5pi).lag(0.01);
 
+//aaz = (r1+r2).wrap(pi.neg,pi);
+//eel = r3.lag(0.1);
 
-aaz = (r1.lag(0.1)+r2.lag(0.1)).wrap(pi.neg,pi);
-eel = r3.lag(0.1);
+th=(az+r3.lag(0.01)).wrap(pi.neg,pi);
+ph=(el+r3.lag(0.01)).wrap(0.5pi.neg,0.5pi);
 
-th=(az+aaz).wrap(pi.neg,pi);
-ph=(el+eel).wrap(0.5pi.neg,0.5pi);
+//th=az.lag(0.01);
+//ph=el.lag(0.01);
 
 x = (harm*cos(ph)*cos(th))+(cos(harm*ph)*cos(harm*th));
 y = (harm*cos(ph)*sin(th))+(cos(harm*ph)*sin(harm*th));
@@ -807,11 +813,12 @@ mpf_x =pi* x;
 mpf_y =pi* y;
 mpf_z =pi* z;
 
-key=~num;
+//key=~num;
+key=~scale;
 
-b_x=2.pow(mp_x.round(1)/16256);
-b_y=2.pow(mp_y.round(1)/16256);
-b_z=2.pow(mp_z.round(1)/16256);
+b_x=2.pow(mp_x.round(1)/992);
+b_y=2.pow(mp_y.round(1)/992);
+b_z=2.pow(mp_z.round(1)/992);
 
 s_x=2.pow(Select.kr(mps_x.round(1).abs,key).asInteger /12);
 s_y=2.pow(Select.kr(mps_y.round(1).abs,key).asInteger /12);
@@ -825,7 +832,8 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-perspective = ((~octaves*2)*dist) / (((~octaves*2)*dist) + b_z.reciprocal + (((~octaves*2)*dist)/vanish));
+view=gain/dist;
+perspective = ((~octaves*2)*view) / (((~octaves*2)*view) + z + (((~octaves*2)*view)/vanish));
 revm=perspective.linlin(0,1,1,0);
 //mod_x=mpf_x;
 //mod_y=mpf_y;
@@ -845,8 +853,8 @@ revm=perspective.linlin(0,1,1,0);
 //phasex=atan2(mod_x,mod_y);
 //phasey=atan2(mod_y,mod_z);
 //phasez=atan2(mod_z,mod_x);
-phasex=mpf_x;
-phasey=mpf_y;
+phasex=mpf_x*perspective;
+phasey=mpf_y*perspective;
 phasez=mpf_z;
 
 c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
@@ -856,22 +864,26 @@ SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
 c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
 SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
 
-////distortion rectifier
+////rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
-(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*10;
+(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*1;
 sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
-(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*10;
+(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*1;
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
-(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*10;
+(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*1;
+
 
 //sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
 //sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
 //sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
+
 ///distortion
 
 sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+
+
 //////propagation
 sig1=sig1*mp_x.sign*perspective;
 sig2=sig2*mp_y.sign*perspective;
@@ -884,6 +896,7 @@ sig3=sig3*mp_z.sign;
 //sig1=BRF.ar(c1,freq1*4,heavy);
 //sig2=BRF.ar(c2,freq2*4,heavy);
 //sig3=BRF.ar(c3,freq3*4,heavy);
+
 
 ////spherical harmonics
 mag_x=((Complex(cos(az*harm),cos(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
@@ -903,74 +916,69 @@ sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 
+
 /////spat
 (
 g_ch1=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan1).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan11)*cos((th+pan1).wrap(pi.neg,pi))*
 c1.range(0.001,1)*cos(~el.[0])*cos(~az.[0]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan1).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan11)*sin((th+pan1).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[0])*sin(~az.[0]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan11)*
  c3.range(0.001,1)*sin(~el.[0]));
 
 g_ch2=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan2).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan22)*cos((th+pan2).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[1])*cos(~az.[1]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan2).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan22)*sin((th+pan2).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[1])*sin(~az.[1]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan22)*
  c3.range(0.001,1)*sin(~el.[1]));
 
 g_ch3=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan3).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan33)*cos((th+pan3).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[2])*cos(~az.[2]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan3).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan33)*sin((th+pan3).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[2])*sin(~az.[2]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan33)*
  c3.range(0.001,1)*sin(~el.[2]));
 
 g_ch4=
-(c1.abs.range(0.001,1)*cos(ph)*cos((th+pan4).wrap(pi.neg,pi))*
+(c1.abs.range(0.001,1)*cos(ph+pan44)*cos((th+pan4).wrap(pi.neg,pi))*
  c1.range(0.001,1)*cos(~el.[3])*cos(~az.[3]))
 +
-(c2.abs.range(0.001,1)*cos(ph)*sin((th+pan4).wrap(pi.neg,pi))*
+(c2.abs.range(0.001,1)*cos(ph+pan44)*sin((th+pan4).wrap(pi.neg,pi))*
  c2.range(0.001,1)*cos(~el.[3])*sin(~az.[3]))
 +
-(c3.abs.range(0.001,1)*sin(ph)*
+(c3.abs.range(0.001,1)*sin(ph+pan44)*
  c3.range(0.001,1)*sin(~el.[3]));
 );
 
 
+////pan
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
+//Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
+//Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
+//Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch2));
+//Out.ar(busArray.[2],LeakDC.ar(sig1*env*g_ch3));
+//Out.ar(busArray.[2],LeakDC.ar(sig2*env*g_ch3));
+//Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
+//Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
+//no pan
 Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env));
+Out.ar(busArray.[0],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
 Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env)));
 Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env)));
 
-///comment out the above parentheses and uncomment the below to use the synth on
-///threefold speaker wavefield quad spat (12ch)/// to puput stereo sets (x,y) not use z channel as ouput (2,5,etc), sig3.
-/*(
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch1));
-Out.ar(busArray.[2],LeakDC.ar(sig3*env*g_ch1));
-Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch2));
-Out.ar(busArray.[4],LeakDC.ar(sig2*env*g_ch2));
-Out.ar(busArray.[5],LeakDC.ar(sig3*env*g_ch2));
-Out.ar(busArray.[6],LeakDC.ar(sig1*env*g_ch3));
-Out.ar(busArray.[7],LeakDC.ar(sig2*env*g_ch3));
-Out.ar(busArray.[8],LeakDC.ar(sig3*env*g_ch3));
-Out.ar(busArray.[9],LeakDC.ar(sig1*env*g_ch4));
-Out.ar(busArray.[10],LeakDC.ar(sig2*env*g_ch4));
-Out.ar(busArray.[11],LeakDC.ar(sig3*env*g_ch4));
-)*/
 
 }).add;
 );
@@ -1163,13 +1171,13 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 {
 Routine({loop{
 ~nn=~set.rand;
-(~dursum/4).wait; // frame duration
+(~dursum*3).wait; // frame duration
 };
 }).play(~clock);
 }.defer
 );
 
-~nn=~set.rand;
+//~nn=~set.rand;
 ~seqt= Pseq(~durt ,inf).asStream;
 ~seqt1= Pseq(~dur ,inf).asStream;
 {
@@ -1449,7 +1457,7 @@ value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sl4=Knob.new(~vw1, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,992*~octaves).round(1).asInteger.postln;
 ~sc=value2;
 ~log1.(value2.asString);
 });
@@ -1471,7 +1479,7 @@ value2=obj.value.linlin(0,1,1,8).postln;
 ~sl6=Knob.new(~vw1, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,(16256*4).neg,0).round(1).asInteger.postln;
+value1=obj.value.linlin(0,1,(992*4).neg,0).round(1).asInteger.postln;
 ~drive=value1;
 ~log1.(value1.asString);
 });
@@ -1542,7 +1550,7 @@ value2=obj.value.linexp(0,1,0.0001,1).postln;
 ~s12=Knob.new(~vw1, Rect.new(150,(50+sk+50+sk+25+25+50), sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,16256*~octaves).round(1).asInteger.postln;
+value=obj.value.linlin(0,1,0,992*~octaves).round(1).asInteger.postln;
 ~c=value;
 ~log1.(value.asString);
 });
@@ -1568,7 +1576,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~room=value;
 ~log1.(value.asString);
 });
-~st14=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
+~st14=StaticText(~vw1,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("room")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1579,7 +1587,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~mix=value;
 ~log1.(value.asString);
 });
-~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revmix")
+~st15=StaticText(~vw1,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fmix")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1608,10 +1616,10 @@ value=obj.value.linexp(0,1,1.01,1000).postln;
 ~s118=Knob.new(~vw1, Rect.new(250,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,16256,1);
+value=obj.value.linexp(0,1,992,1);
 ~fuse=value;
 ~pan1=obj.value.linexp(0,1,0.00001,20);
-~mr1=obj.value.linexp(0,1,100.01,1).postln;
+~mr1=obj.value.linexp(0,1,100.01,0.1).postln;
 ~log1.(~mr1.asString);
 });
 ~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
@@ -1632,7 +1640,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,1000).postln;
+value=obj.value.linexp(0,1,10000.01,0.01).postln;
 ~dist1=value;
 ~log1.(value.asString);
 });
@@ -1803,7 +1811,7 @@ value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
 ~sl4b=Knob.new(~vw, Rect.new(350,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value2=obj.value.linexp(0,1,1,16256*~octaves).round(1).asInteger.postln;
+value2=obj.value.linexp(0,1,1,992*~octaves).round(1).asInteger.postln;
 ~scb=value2;
 ~log2.(value2.asString);
 });
@@ -1825,7 +1833,7 @@ value2=obj.value.linlin(0,1,1,8).postln;
 ~sl6b=Knob.new(~vw, Rect.new(50,50+sk+50+25,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linlin(0,1,(16256*4).neg,0).round(1).asInteger.postln;
+value1=obj.value.linlin(0,1,(992*4).neg,0).round(1).asInteger.postln;
 ~driveb=value1;
 ~log2.(value1.asString);
 });
@@ -1896,7 +1904,7 @@ value2=obj.value.linexp(0,1,0.0001,1).postln;
 ~s12b=Knob.new(~vw, Rect.new(150,(50+sk+50+sk+25+25+50), sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linlin(0,1,0,16256*~octaves).round(1).asInteger.postln;
+value=obj.value.linlin(0,1,0,992*~octaves).round(1).asInteger.postln;
 ~cb=value;
 ~log2.(value.asString);
 });
@@ -1922,7 +1930,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~roomb=value;
 ~log2.(value.asString);
 });
-~st14b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revroom")
+~st14b=StaticText(~vw,Rect(350,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("room")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1933,7 +1941,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~mixb=value;
 ~log2.(value.asString);
 });
-~st15b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("revmix")
+~st15b=StaticText(~vw,Rect(450,(50+sk+50+sk+25+25+sk+50),sk+20,sk)).string_("fmix")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1962,10 +1970,10 @@ value=obj.value.linexp(0,1,1.01,1000).postln;
 ~s118b=Knob.new(~vw, Rect.new(250,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,16256,1);
+value=obj.value.linexp(0,1,992,1);
 ~fuse=value;
 ~pan2=obj.value.linexp(0,1,0.00001,20);
-~mr2=obj.value.linexp(0,1,100.01,1).postln;
+~mr2=obj.value.linexp(0,1,100.01,0.1).postln;
 ~log2.(~mr2.asString);
 });
 ~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
@@ -1986,7 +1994,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20b=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,0.01,1000).postln;
+value=obj.value.linexp(0,1,10000.01,0.01).postln;
 ~dist2=value;
 ~log2.(value.asString);
 });
