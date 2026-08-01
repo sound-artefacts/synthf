@@ -125,13 +125,13 @@ gain: total amp level (envelope)
 
 revroom: reverb room size, none to large
 
-revmix: reverb wet mix and softclip gain, low to high
+fmix: mix for distortion pwm and panner (reverb is mixed via distance)
 
 fuse1: coordinates of timbral data tensor, fuse to less coordinates (interferance collision)
 
 fuse2: coordinates of timbral data tensor, fuse to less coordinates, (fuse to one coordinate if fuse1 is max)
 
-fuse: pan speed for spat
+orange: distortion limit
 
 harm: spherical harmonic on timbral data tensor and cardioid
 
