@@ -585,10 +585,6 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-view=harm/dist;
-perspective = view / (view + z + (view/vanish));
-revm=perspective.linlin(0,0.5,0,1);
-
 //phasex=(Complex(1,mod_x).theta*2)+envf;
 //phasey=(Complex(1,mod_y).theta*2)+envf;
 //phasez=(Complex(1,mod_z).theta*2)+envf;
@@ -599,12 +595,12 @@ phasex=mpf_x;
 phasey=mpf_y;
 phasez=mpf_z;
 
-c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
-c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
-c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
+c1=BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1);
+c2=BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2);
+c3=BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3);
 
 ////rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -614,14 +610,11 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*5;
 
-///distortion
 
-//sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-//sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//////propagation///perspective
+view=harm/dist;
+perspective = view / (view + z + (view/vanish));
 
-
-//////propagation
 sig1=sig1*mp_x.sign*perspective;
 sig2=sig2*mp_y.sign*perspective;
 sig3=sig3*mp_z.sign;
@@ -653,6 +646,12 @@ threshold=(((343/s_size)/fund).reciprocal.ampdb/2.sqrt).dbamp;
 sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
+
+///reverb
+revm=perspective.linlin(0,0.6,0,1);
+sig1=FreeVerb.ar(sig1,revm+(mix/5),room,perspective);
+sig2=FreeVerb.ar(sig2,revm+(mix/5),room,perspective);
+sig3=FreeVerb.ar(sig3,revm+(mix/5),room,perspective);
 
 /////spat
 
@@ -717,11 +716,11 @@ g_ch4=
 //Out.ar(busArray.[0],LeakDC.ar(sig1*env)/2.sqrt);
 //Out.ar(busArray.[0],LeakDC.ar(sig2*env)/2.sqrt);
 
-///synth
-synthx=Pulse.ar(freq1,mix.linexp(0,1,0.9999,0.5),env,env)*sig1;
-synthy=Pulse.ar(freq2,mix.linexp(0,1,0.9999,0.5),env,env)*sig2;
-synthx=(synthx*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-synthy=(synthy*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+///distortion
+synthx=Pulse.ar(freq1,mix.linexp(0,1,0.999999,0.5),env,env)*sig1;
+synthy=Pulse.ar(freq2,mix.linexp(0,1,0.999999,0.5),env,env)*sig2;
+synthx=(synthx).fold2(mrange);
+synthy=(synthy).fold2(mrange);
 
 Out.ar(busArray.[0],LeakDC.ar(synthx));
 Out.ar(busArray.[1],LeakDC.ar(synthy));
@@ -837,10 +836,6 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-view=harm/dist;
-perspective = view / (view + z + (view/vanish));
-revm=perspective.linlin(0,0.5,0,1);
-
 //phasex=(Complex(1,mod_x).theta*2)+envf;
 //phasey=(Complex(1,mod_y).theta*2)+envf;
 //phasez=(Complex(1,mod_z).theta*2)+envf;
@@ -851,12 +846,12 @@ phasex=mpf_x;
 phasey=mpf_y;
 phasez=mpf_z;
 
-c1=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
-SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1),revm,room);
-c2=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
-SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2),revm,room);
-c3=FreeVerb.ar(BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
-SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3),revm,room);
+c1=BPF.ar((Osc.ar(~wt.bufnum,freq1,phase:phasex,mul:1200).abs*
+SinOsc.ar(freq1,phase:phasex)),freq1,heavy,amp1);
+c2=BPF.ar((Osc.ar(~wt.bufnum,freq2,phase:phasey,mul:1200).abs*
+SinOsc.ar(freq2,phase:phasey)),freq2,heavy,amp2);
+c3=BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
+SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3);
 
 ////rectifier
 sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
@@ -866,14 +861,11 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*5;
 
-///distortion
 
-//sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-//sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//////propagation///perspective
+view=harm/dist;
+perspective = view / (view + z + (view/vanish));
 
-
-//////propagation
 sig1=sig1*mp_x.sign*perspective;
 sig2=sig2*mp_y.sign*perspective;
 sig3=sig3*mp_z.sign;
@@ -905,6 +897,12 @@ threshold=(((343/s_size)/fund).reciprocal.ampdb/2.sqrt).dbamp;
 sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
+
+///reverb
+revm=perspective.linlin(0,0.6,0,1);
+sig1=FreeVerb.ar(sig1,revm+(mix/5),room,perspective);
+sig2=FreeVerb.ar(sig2,revm+(mix/5),room,perspective);
+sig3=FreeVerb.ar(sig3,revm+(mix/5),room,perspective);
 
 /////spat
 
@@ -969,11 +967,11 @@ g_ch4=
 //Out.ar(busArray.[0],LeakDC.ar(sig1*env)/2.sqrt);
 //Out.ar(busArray.[0],LeakDC.ar(sig2*env)/2.sqrt);
 
-///synth
-synthx=Pulse.ar(freq1,mix.linexp(0,1,0.9999,0.5),env,env)*sig1;
-synthy=Pulse.ar(freq2,mix.linexp(0,1,0.9999,0.5),env,env)*sig2;
-synthx=(synthx*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-synthy=(synthy*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+///distortion
+synthx=Pulse.ar(freq1,mix.linexp(0,1,0.999999,0.5),env,env)*sig1;
+synthy=Pulse.ar(freq2,mix.linexp(0,1,0.999999,0.5),env,env)*sig2;
+synthx=(synthx).fold2(mrange);
+synthy=(synthy).fold2(mrange);
 
 Out.ar(busArray.[0],LeakDC.ar(synthx));
 Out.ar(busArray.[1],LeakDC.ar(synthy));
@@ -1312,114 +1310,6 @@ w = Window("tws", Rect(50, 50, size, size)).front;
 ~logItems1 = List.new;
 ~log1 = { |msg| {~logItems1.add(msg); if(~logItems1.size > 200) { ~logItems1.removeAt(0);  };
  ~logView1.items_(~logItems1.asArray); ~logView1.value_(~logItems1.size - 1); }.defer;};
-//v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
-//v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
-//v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
-
-/*v1.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p1=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_1.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-t1x=(~controlBus_1.getSynchronous*shift).reciprocal;
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-Pen.addOval(Rect.aboutPoint(Point((x-tx1+t1x).wrap(0,550),y),sz,sz));
-p1=p1++Point((x-tx1+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p1=p1.scramble;
-n = 0;m=0;k = 0;
-(p1.size).do {
-var m = n + 1;
-(p1.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_1.getSynchronous).abs*wd;
-(if(p1.[n].dist(p1.[m]) < lined){Pen.line( p1.[n], p1.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v1.background_(Color.black);tx1 = (tx1 + rol).wrap(0,550); v1.refresh; (0.03).wait } }.fork(AppClock);
-
-v2.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p2=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_2.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-t1x=(~controlBus_2.getSynchronous*shift).reciprocal;
-Pen.addOval(Rect.aboutPoint(Point((x-tx2+t1x).wrap(0,550),y),sz,sz));
-p2=p2++Point((x-tx2+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p2=p2.scramble;
-n = 0;m=0;k = 0;
-(p2.size).do {
-var m = n + 1;
-(p2.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_2.getSynchronous).abs*wd;
-(if(p2.[n].dist(p2.[m]) < lined){Pen.line( p2.[n], p2.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v2.background_(Color.black);tx2 = (tx2 + rol).wrap(0,550); v2.refresh; (0.03).wait } }.fork(AppClock);
-
-v3.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p3=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_3.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-t1x=(~controlBus_3.getSynchronous*shift).reciprocal;
-Pen.addOval(Rect.aboutPoint(Point((x-tx3+t1x).wrap(0,550),y),sz,sz));
-p3=p3++Point((x-tx3+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p3=p3.scramble;
-n = 0;m=0;k = 0;
-(p3.size).do {
-var m = n + 1;
-(p3.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_3.getSynchronous).abs*wd;
-(if(p3.[n].dist(p3.[m]) < lined){Pen.line( p3.[n], p3.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);*/
 
 (
 ~sl1=Knob.new(~vw1, Rect.new(50,50,sk, sk)).background_(Color.black).action_({
@@ -1438,6 +1328,7 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,0.0001,1).postln;
 //~rotation=value;
+~pan1=obj.value.linlin(0,1,0.000001,0.5);
 ~rotationz1=value;
 ~log1.(value.asString);
 });
@@ -1585,7 +1476,7 @@ value=obj.value.linexp(0,1,0.01,1).postln;
 ~sl15=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,0.01,1).postln;
+value=obj.value.linexp(0,1,0.001,1).postln;
 ~mix=value;
 ~log1.(value.asString);
 });
@@ -1620,11 +1511,10 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
-~pan1=obj.value.linexp(0,1,0.00001,20);
 ~mr1=obj.value.linexp(0,1,100.01,0.05).postln;
 ~log1.(~mr1.asString);
 });
-~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
+~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mlimit")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
@@ -1670,111 +1560,6 @@ v1 = UserView(w, Rect(0,size,size,100)).background_(Color.black);
 v2 = UserView(w, Rect(0,650,size,100)).background_(Color.black);
 v3 = UserView(w, Rect(0,750,size,100)).background_(Color.black);
 
-/*v1.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p1=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_4.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-t1x=(~controlBus_4.getSynchronous*shift).reciprocal;
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-Pen.addOval(Rect.aboutPoint(Point((x-tx1+t1x).wrap(0,550),y),sz,sz));
-p1=p1++Point((x-tx1+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p1=p1.scramble;
-n = 0;m=0;k = 0;
-(p1.size).do {
-var m = n + 1;
-(p1.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_4.getSynchronous).abs*wd;
-(if(p1.[n].dist(p1.[m]) < lined){Pen.line( p1.[n], p1.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v1.background_(Color.black);tx1 = (tx1 + rol).wrap(0,550); v1.refresh; (0.03).wait } }.fork(AppClock);
-
-v2.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p2=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_5.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-t1x=(~controlBus_5.getSynchronous*shift).reciprocal;
-Pen.addOval(Rect.aboutPoint(Point((x-tx2+t1x).wrap(0,550),y),sz,sz));
-p2=p2++Point((x-tx2+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p2=p2.scramble;
-n = 0;m=0;k = 0;
-(p2.size).do {
-var m = n + 1;
-(p2.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_5.getSynchronous).abs*wd;
-(if(p2.[n].dist(p2.[m]) < lined){Pen.line( p2.[n], p2.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v2.background_(Color.black);tx2 = (tx2 + rol).wrap(0,550); v2.refresh; (0.03).wait } }.fork(AppClock);
-
-v3.drawFunc = {
-var x=0,y=0,n=0,m=0,k=0,t1x,br;
-p3=[];
-10.do {
-5.do{
-br=exp(Complex(0,1)*(~controlBus_6.getSynchronous*100)*pi).real.linlin(1.neg,1,0,1);
-Pen.fillColor = Color.white.alpha_(br*cos(x*pi));
-Pen.strokeColor = Color.white.alpha_(br*cos(x*pi));
-t1x=(~controlBus_6.getSynchronous*shift).reciprocal;
-Pen.addOval(Rect.aboutPoint(Point((x-tx3+t1x).wrap(0,550),y),sz,sz));
-p3=p3++Point((x-tx3+t1x).wrap(0,550),y);
-Pen.fillStroke;
-y=(y+(10)).wrap(0,50);
-};
-x=(x+(55)).wrap(0,550);
-y=0;
-};
-x=0;
-////////mesh
-p3=p3.scramble;
-n = 0;m=0;k = 0;
-(p3.size).do {
-var m = n + 1;
-(p3.size - n - 1).do {
-Pen.fillColor = Color.white.alpha_(1);
-Pen.strokeColor = Color.white.alpha_(1);
-Pen.width = (~controlBus_6.getSynchronous).abs*wd;
-(if(p3.[n].dist(p3.[m]) < lined){Pen.line( p3.[n], p3.[m])};);
-m=m+1;k=k+1;
-};n=n+1;
-};
-Pen.fillStroke;
-};
-{ while { run } {v3.background_(Color.black);tx3 = (tx3 + rol).wrap(0,550); v3.refresh; (0.03).wait } }.fork(AppClock);*/
-
 (
 ~sl1b=Knob.new(~vw, Rect.new(50,50,sk, sk)).background_(Color.black).action_({
 arg obj;
@@ -1790,9 +1575,10 @@ value=obj.value.linlin(0,1,1/32,8).round(1/16).postln;
 ~sl2b=Knob.new(~vw, Rect.new(150,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value;
-value=obj.value.linexp(0,1,0.0001,1).postln;
+value=obj.value.linexp(0,1,0.0001,1);
 //~rotation=value;
 ~rotationz=value;
+~pan2=obj.value.linlin(0,1,0.000001,0.5).postln;
 ~log2.(value.asString);
 });
 ~st2b=StaticText(~vw,Rect(150,50+sk,sk+20,sk)).string_("rz")
@@ -1974,11 +1760,10 @@ arg obj;
 var value;
 value=obj.value.linexp(0,1,16256,1);
 ~fuse=value;
-~pan2=obj.value.linexp(0,1,0.00001,20);
 ~mr2=obj.value.linexp(0,1,100.01,0.05).postln;
 ~log2.(~mr2.asString);
 });
-~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
+~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mlimit")
 .stringColor_(Color.white).background_(Color.black).font_(Font('Arial',16));
 );
 (
