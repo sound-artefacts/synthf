@@ -28,7 +28,7 @@ s.waitForBoot{
 Tdef(\drone, {
 
 (
-~sph=Spherical(pi,pi.rand2,0.5pi.rand2);
+~sph=Spherical(pi,0,0.5pi.rand2);
 {Out.kr(~controlBus_x.index,SinOsc.kr(0.01,~sph.x,pi))}.play;
 {Out.kr(~controlBus_y.index,SinOsc.kr(0.01,~sph.y,pi))}.play;
 {Out.kr(~controlBus_z.index,SinOsc.kr(0.01,~sph.z,pi))}.play;
@@ -580,22 +580,10 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-view=gain/dist;
-perspective = ((~octaves*2)*view) / (((~octaves*2)*view) + z + (((~octaves*2)*view)/vanish));
+view=1/dist;
+perspective = view / (view + z + (view/vanish));
 revm=perspective.linlin(0,1,1,0);
-perspective.poll;
-//mod_x=mpf_x;
-//mod_y=mpf_y;
-//mod_z=mpf_z;
-///simple  az/el wave phase relations
-//phasex=b_x.reciprocal*s_x.reciprocal*pi;
-//phasey=b_y.reciprocal*s_y.reciprocal*pi;
-//phasez=b_z.reciprocal*s_z.reciprocal*pi;
-///perspective phase relations
-//for linear phase mapping use linlin
-//for compresse exp smoother maping with more energe towards similar values use complex
-//for rational relations between phases and symmetry matrices use atan2 relation insteadof maping
-//here since signal is wavefield ratio phases with more sidebands and matrice symmetries may be usefull
+
 //phasex=(Complex(1,mod_x).theta*2)+envf;
 //phasey=(Complex(1,mod_y).theta*2)+envf;
 //phasez=(Complex(1,mod_z).theta*2)+envf;
@@ -621,16 +609,11 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*1;
 
-
-//sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
-//sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
-//sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
-
 ///distortion
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+sig1=(sig1*mix.linexp(0,1,0.1,pi)).fold2(mrange);
+sig2=(sig2*mix.linexp(0,1,0.1,pi)).fold2(mrange);
+sig3=(sig3*mix.linexp(0,1,0.1,pi)).fold2(mrange);
 
 
 //////propagation
@@ -651,9 +634,10 @@ sig3=sig3*mp_z.sign;
 mag_x=((Complex(cos(az*harm),cos(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
 mag_y=((Complex(sin(az*harm),sin(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
 mag_z=(Complex(sin(el*harm),sin(el*harm)).rho/(2.sqrt));
-c1=c1*mag_x;
-c1=c2*mag_y;
-c1=c3*mag_z;
+
+c1=c1*mag_x*perspective;
+c2=c2*mag_y*perspective;
+c3=c3*mag_z;
 
 /////compresion
 sig1=Limiter.ar(HPF.ar(sig1,lowend),lim);
@@ -721,7 +705,7 @@ g_ch4=
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
 //no pan
 Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-Out.ar(busArray.[0],LeakDC.ar(sig2*env));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
@@ -738,7 +722,7 @@ arg gain=1,lowend=20,s_size=1,room=1,drive=0,au=0,sb=0,mag1=1,elosc=1,
 c=0,timbr=1,az=0,el=0,dicay=2,attack=2,sc=20,ssc=1,mix=0,rect=16,s1,s2,s3,s4,
 busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0,mrange=1,lim=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
-var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy;
+var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,pen;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan,pan11,pan22,pan33,pan44;
 var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
@@ -832,21 +816,10 @@ amp1=b_x.reciprocal*expansion.reciprocal*s_x.reciprocal;
 amp2=b_y.reciprocal*expansion.reciprocal*s_y.reciprocal;
 amp3=b_z.reciprocal*expansion.reciprocal*s_z.reciprocal;
 
-view=gain/dist;
-perspective = ((~octaves*2)*view) / (((~octaves*2)*view) + z + (((~octaves*2)*view)/vanish));
+view=1/dist;
+perspective = view / (view + z + (view/vanish));
 revm=perspective.linlin(0,1,1,0);
-//mod_x=mpf_x;
-//mod_y=mpf_y;
-//mod_z=mpf_z;
-///simple  az/el wave phase relations
-//phasex=b_x.reciprocal*s_x.reciprocal*pi;
-//phasey=b_y.reciprocal*s_y.reciprocal*pi;
-//phasez=b_z.reciprocal*s_z.reciprocal*pi;
-///perspective phase relations
-//for linear phase mapping use linlin
-//for compresse exp smoother maping with more energe towards similar values use complex
-//for rational relations between phases and symmetry matrices use atan2 relation insteadof maping
-//here since signal is wavefield ratio phases with more sidebands and matrice symmetries may be usefull
+
 //phasex=(Complex(1,mod_x).theta*2)+envf;
 //phasey=(Complex(1,mod_y).theta*2)+envf;
 //phasez=(Complex(1,mod_z).theta*2)+envf;
@@ -872,16 +845,11 @@ sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
 sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 (SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*1;
 
-
-//sig1=(sig1*mix.linexp(0,1,0.5,pi)).softclip;
-//sig2=(sig2*mix.linexp(0,1,0.5,pi)).softclip;
-//sig3=(sig3*mix.linexp(0,1,0.5,pi)).softclip;
-
 ///distortion
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+sig1=(sig1*mix.linexp(0,1,0.1,pi)).fold2(mrange);
+sig2=(sig2*mix.linexp(0,1,0.1,pi)).fold2(mrange);
+sig3=(sig3*mix.linexp(0,1,0.1,pi)).fold2(mrange);
 
 
 //////propagation
@@ -902,9 +870,10 @@ sig3=sig3*mp_z.sign;
 mag_x=((Complex(cos(az*harm),cos(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
 mag_y=((Complex(sin(az*harm),sin(az*harm)).rho/(2.sqrt))*(Complex(cos(el),cos(el)).rho/(2.sqrt)));
 mag_z=(Complex(sin(el*harm),sin(el*harm)).rho/(2.sqrt));
-c1=c1*mag_x;
-c1=c2*mag_y;
-c1=c3*mag_z;
+
+c1=c1*mag_x*perspective;
+c2=c2*mag_y*perspective;
+c3=c3*mag_z;
 
 /////compresion
 sig1=Limiter.ar(HPF.ar(sig1,lowend),lim);
@@ -916,8 +885,8 @@ sig1=Compander.ar(sig1,c1,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig2=Compander.ar(sig2,c2,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 sig3=Compander.ar(sig3,c3,threshold,1.2,1/3,0.03,0.15)+BrownNoise.ar(0.000001);
 
-
 /////spat
+
 (
 g_ch1=
 (c1.abs.range(0.001,1)*cos(ph+pan11)*cos((th+pan1).wrap(pi.neg,pi))*
@@ -972,7 +941,7 @@ g_ch4=
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
 //no pan
 Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-Out.ar(busArray.[0],LeakDC.ar(sig2*env));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
@@ -1619,7 +1588,7 @@ var value;
 value=obj.value.linexp(0,1,992,1);
 ~fuse=value;
 ~pan1=obj.value.linexp(0,1,0.00001,20);
-~mr1=obj.value.linexp(0,1,100.01,0.1).postln;
+~mr1=obj.value.linexp(0,1,100.01,0.05).postln;
 ~log1.(~mr1.asString);
 });
 ~s118=StaticText(~vw1,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
@@ -1640,7 +1609,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20=Knob.new(~vw1, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,10000.01,0.01).postln;
+value=obj.value.linexp(0,1,100.01,0.1).postln;
 ~dist1=value;
 ~log1.(value.asString);
 });
@@ -1973,7 +1942,7 @@ var value;
 value=obj.value.linexp(0,1,992,1);
 ~fuse=value;
 ~pan2=obj.value.linexp(0,1,0.00001,20);
-~mr2=obj.value.linexp(0,1,100.01,0.1).postln;
+~mr2=obj.value.linexp(0,1,100.01,0.05).postln;
 ~log2.(~mr2.asString);
 });
 ~s118b=StaticText(~vw,Rect(250,(50+sk+50+sk+25+25+sk+50+sk+50+sk),sk+20,sk)).string_("mrange")
@@ -1994,7 +1963,7 @@ value=obj.value.linlin(0,1,1,7).round(1).postln;
 ~sl20b=Knob.new(~vw, Rect.new(450,(50+sk+50+sk+25+25+sk+50+sk+50),sk, sk)).background_(Color.black).action_({
 arg obj;
 var value,v;
-value=obj.value.linexp(0,1,10000.01,0.01).postln;
+value=obj.value.linexp(0,1,100.01,0.1).postln;
 ~dist2=value;
 ~log2.(value.asString);
 });
