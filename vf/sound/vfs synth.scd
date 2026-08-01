@@ -707,8 +707,8 @@ g_ch4=
 //Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
 //no pan
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch3));
+Out.ar(busArray.[0],LeakDC.ar(sig1*env));
+Out.ar(busArray.[1],LeakDC.ar(sig2*env));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
@@ -947,7 +947,7 @@ g_ch4=
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
 //no pan
 Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env*g_ch3));
+Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch3));
 //Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
