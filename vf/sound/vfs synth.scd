@@ -404,7 +404,7 @@ n = n + 1;
 ~tree.play
 }.defer;
 );
-
+0.1.wait;
 (
 {var sph,rot;
 Routine({loop{
@@ -449,8 +449,8 @@ wt = signal.asWavetable;
 }.value;
 );
 (
-~note=(5*3);
-~note10=(5*3);
+~note=(5*5);
+~note10=(5*5);
 ~num=[0,0,5,7,12,17,19,24,29,31,48,53,55,96];
 //~note=13;
 (
@@ -479,6 +479,7 @@ nn=1.neg;
 ~az=[45.degrad,135.neg.degrad,45.neg.degrad,135.degrad];
 ~el=[35.264390.neg.degrad,35.264390.neg.degrad,35.264390.degrad,35.264390.degrad];
 );
+		0.1.wait;
 /////////////////////////////////////////////////////////////////////////////////////////////////////sound
 (
 SynthDef.new(\synth,{
@@ -488,10 +489,11 @@ busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0,mrange=1,lim=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,pen;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan,pan11,pan22,pan33,pan44;
-var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
+var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z,cm,cm1,cm2;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz,view;
 var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4,xc,yc,zc;
+var synthx,synthy,freq;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -614,8 +616,8 @@ sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 
 ///distortion
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 
 
@@ -698,6 +700,9 @@ g_ch4=
 
 
 ////pan
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env));
+//Out.ar(busArray.[1],LeakDC.ar(sig2*env));
+
 //Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
 //Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
 //Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
@@ -706,18 +711,27 @@ g_ch4=
 //Out.ar(busArray.[2],LeakDC.ar(sig2*env*g_ch3));
 //Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
-//no pan
-Out.ar(busArray.[0],LeakDC.ar(sig1*env));
-Out.ar(busArray.[1],LeakDC.ar(sig2*env));
-//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
+
+//no pan mono
+//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z))
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env)/2.sqrt);
+//Out.ar(busArray.[0],LeakDC.ar(sig2*env)/2.sqrt);
+
+///synth
+synthx=Pulse.ar(freq1,mix.linexp(0,1,0.9999,0.5),env,env)*sig1;
+synthy=Pulse.ar(freq2,mix.linexp(0,1,0.9999,0.5),env,env)*sig2;
+synthx=(synthx*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+synthy=(synthy*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+
+Out.ar(busArray.[0],LeakDC.ar(synthx));
+Out.ar(busArray.[1],LeakDC.ar(synthy));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
 Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env)));
 Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env)));
 
-
 }).add;
-);
+);0.1.wait;
 ////second instrument
 (
 SynthDef.new(\synthb,{
@@ -727,10 +741,11 @@ busArray = #[0,1,2,3],dist=1,harm=1,rx=0,ry=0,rz=0,mrange=1,lim=1;
 var fund,fu=32,n=0,mod_x,mod_y,mod_z,phasex,phasey,phasez,low=0,tremolo=32;
 var freq1,freq2,freq3,amp1,amp2,amp3,sig1,sig2,sig3,heavy,pen;
 var b_x,b_y,b_z,polytope,env,expansion,sph1,sph2,envf,pan,pan11,pan22,pan33,pan44;
-var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z;
+var g_ch1,g_ch2,g_ch3,g_ch4,mp,mps,mpf,x,y,z,mag_x,mag_y,mag_z,cm,cm1,cm2;
 var s_x,s_y,s_z,threshold,c1,c2,c3,mp_x,mp_y,mp_z,mps_x,mps_y,mps_z,mpf_x,mpf_y,mpf_z;
 var peak, times,signal,rip,enva,key,attackLen,sustainLen,decayLen,tx,ty,tz,view;
 var vanish=2,perspective,revm,rot,r1,r2,r3,th,ph,aaz,eel,rrr,select,pan1,pan2,pan3,pan4,xc,yc,zc;
+var synthx,synthy,freq;
 
 //envf=EnvGen.ar(Env.new([0,0,pi,pi,2pi],[(dicay/2),(attack/2),(dicay/2),(attack/2)]),doneAction:0);
 gain=gain*harm.reciprocal;
@@ -853,8 +868,8 @@ sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
 
 ///distortion
 
-sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
-sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//sig1=(sig1*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+//sig2=(sig2*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 sig3=(sig3*mix.linexp(0,1,0.5,pi)).fold2(mrange);
 
 
@@ -937,6 +952,9 @@ g_ch4=
 
 
 ////pan
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env));
+//Out.ar(busArray.[1],LeakDC.ar(sig2*env));
+
 //Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
 //Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch1));
 //Out.ar(busArray.[1],LeakDC.ar(sig1*env*g_ch2));
@@ -945,22 +963,30 @@ g_ch4=
 //Out.ar(busArray.[2],LeakDC.ar(sig2*env*g_ch3));
 //Out.ar(busArray.[3],LeakDC.ar(sig1*env*g_ch4));
 //Out.ar(busArray.[3],LeakDC.ar(sig2*env*g_ch4));
-//no pan
-Out.ar(busArray.[0],LeakDC.ar(sig1*env*g_ch1));
-Out.ar(busArray.[0],LeakDC.ar(sig2*env*g_ch3));
-//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z));
+
+//no pan mono
+//Out.ar(busArray.[2],LeakDC.ar(sig3*env*mag_z))
+//Out.ar(busArray.[0],LeakDC.ar(sig1*env)/2.sqrt);
+//Out.ar(busArray.[0],LeakDC.ar(sig2*env)/2.sqrt);
+
+///synth
+synthx=Pulse.ar(freq1,mix.linexp(0,1,0.9999,0.5),env,env)*sig1;
+synthy=Pulse.ar(freq2,mix.linexp(0,1,0.9999,0.5),env,env)*sig2;
+synthx=(synthx*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+synthy=(synthy*mix.linexp(0,1,0.5,pi)).fold2(mrange);
+
+Out.ar(busArray.[0],LeakDC.ar(synthx));
+Out.ar(busArray.[1],LeakDC.ar(synthy));
 
 Out.kr(~controlBus_1.index,Amplitude.kr((sig1*env)));
 Out.kr(~controlBus_2.index,Amplitude.kr((sig2*env)));
 Out.kr(~controlBus_3.index,Amplitude.kr((sig3*env)));
-
 
 }).add;
 );
 1.wait;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////sequencer,pattern
-(
 /*({
 var m1=1.neg, m2=1.neg;
 var m3=1.neg,n=0,bank=5,rhythm=4,time=32.reciprocal,beat=1;
@@ -1155,6 +1181,7 @@ Routine({loop{
 //~nn=~set.rand;
 ~seqt= Pseq(~durt ,inf).asStream;
 ~seqt1= Pseq(~dur ,inf).asStream;
+			(
 {
 var x,y,z,px,py,pz,x1,y1,z1,px1,py1,pz1;
 Routine({loop{
