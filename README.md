@@ -136,3 +136,9 @@ orange: distortion limit
 harm: spherical harmonic on timbral data tensor and cardioid
 
 dist: perspective distance (extreme fisheye to fronal isometric perspective)
+
+//////
+interface cover image
+changes where made to original image
+The Second Statue In Druid Ridge that Represents The Greek fate "Clotho"
+https://en.wikipedia.org/wiki/File:Clotho.jpg
