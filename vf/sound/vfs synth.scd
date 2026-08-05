@@ -397,6 +397,7 @@ rot=Spherical(mag,rr.theta,rr.phi).rotateYZ(~rx).rotateXZ(~ry).rotateXY(~rz);
 x=rot.x; y=rot.y; z=rot.z;
 
 ~cx = ~cx ++ x; ~cy = ~cy ++ y; ~cz = ~cz ++ z;
+//~cx = ~cx.clip2(0.5); ~cy =~cy.clip2(0.5); ~cz =~cz.fold2(0.1);
 n = n + 1;
 };
 (~timbr_dur).wait;
@@ -450,16 +451,17 @@ wt = signal.asWavetable;
 );
 (
 ~note=(5*5);
-~note10=(5*5);
 ~num=[0,0,5,7,12,17,19,24,29,31,48,53,55,96];
-//~note=13;
+~note=13;
+~note10=~note;
 (
 {
 var nn=1.neg;
 ~scale=~note.collect{nn=nn+1;Scale.dorian.performDegreeToKey(nn,12)};
 }.value;
 );
-~octaves=3;
+//~num=~scale;
+~octaves=2;
 (
 {
 var nn=1.neg,scale1,scale2;
@@ -567,7 +569,7 @@ mpf_y =pi* y;
 mpf_z =pi* z;
 
 //key=~num;
-key=~scale;
+key=~num;
 
 b_x=2.pow(mp_x.round(1)/16256);
 b_y=2.pow(mp_y.round(1)/16256);
@@ -603,12 +605,12 @@ c3=BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
 SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3);
 
 ////rectifier
-sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
-(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*5;
-sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
-(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*5;
-sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
-(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*5;
+sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1/(rect*2))).abs+(amp1))*
+(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1/(rect)))).abs+(amp1))*c1*5;
+sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2/(rect*2))).abs+(amp2))*
+(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2/(rect)))*c2*5;
+sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3/(rect*2))).abs+(amp3))*
+(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3/(rect)))).abs+(amp3))*c3*5;
 
 
 //////propagation///perspective
@@ -818,7 +820,7 @@ mpf_y =pi* y;
 mpf_z =pi* z;
 
 //key=~num;
-key=~scale;
+key=~num;
 
 b_x=2.pow(mp_x.round(1)/16256);
 b_y=2.pow(mp_y.round(1)/16256);
@@ -854,12 +856,12 @@ c3=BPF.ar((Osc.ar(~wt.bufnum,freq3,phase:phasez,mul:1200).abs*
 SinOsc.ar(freq3,phase:phasez)),freq3,heavy,amp3);
 
 ////rectifier
-sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1)).abs+(amp1))*
-(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1))).abs+(amp1))*c1*5;
-sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2)).abs+(amp2))*
-(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2))*c2*5;
-sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3)).abs+(amp3))*
-(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3))).abs+(amp3))*c3*5;
+sig1=((((SinOsc.ar(freq1*(rect*2),phase:phasex,mul:amp1/(rect*2))).abs+(amp1))*
+(SinOsc.ar(freq1*(rect),phase:phasex,mul:amp1/(rect)))).abs+(amp1))*c1*5;
+sig2=((((SinOsc.ar(freq2*(rect*2),phase:phasey,mul:amp2/(rect*2))).abs+(amp2))*
+(SinOsc.ar(freq2*(rect),phase:phasey,mul:amp2))).abs+(amp2/(rect)))*c2*5;
+sig3=((((SinOsc.ar(freq3*(rect*2),phase:phasez,mul:amp3/(rect*2))).abs+(amp3))*
+(SinOsc.ar(freq3*(rect),phase:phasez,mul:amp3/(rect)))).abs+(amp3))*c3*5;
 
 
 //////propagation///perspective
@@ -1170,7 +1172,8 @@ d=[~dur.[9]+~dur.[10]+~dur.[11]];
 {
 Routine({loop{
 ~nn=~set.rand;
-(~dursum*3).wait; // frame duration
+~nnn=~set.rand;
+(~dursum).wait; // frame duration
 };
 }).play(~clock);
 }.defer
@@ -1194,7 +1197,7 @@ Routine({loop{
 //z1 = Spherical(~set-1,~c_az1,~c_el1).z.round(1).asInteger.abs;
 //~azar=[];~azar1=[];~elar=[];~elar1=[];~magar1=[];~magar2=[];
 x=~nn;
-x1=~nn;
+x1=~nnn;
 //12.do{
 //x=~nn.rand;
 //x1=x;
@@ -1293,7 +1296,7 @@ Pbind(\instrument, \synthb,
 ,\s3,Pfunc{(~vertices-1).rand.round(1).asInteger},\s4,Pfunc{(~vertices-1).rand.round(1).asInteger},
 \attack,  Pfunc { ~attackb }, \dicay, Pfunc { ~decayb }, \ssc, Pfunc{~sscb};
 ));
-//~patternb.play(~clock);
+~patternb.play(~clock);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////gui
 (
 {
@@ -1588,7 +1591,7 @@ value=obj.value.linexp(0,1,0.0001,1);
 ~sl3b=Knob.new(~vw, Rect.new(250,50,sk, sk)).background_(Color.black).action_({
 arg obj;
 var value1,value2;
-value1=obj.value.linexp(0,1,1,~note).round(1).asInteger.postln;
+value1=obj.value.linexp(0,1,1,~note10).round(1).asInteger.postln;
 ~sscb=value1;
 ~log2.(value1.asString);
 });

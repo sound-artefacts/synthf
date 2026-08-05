@@ -1,9 +1,18 @@
+(
 //image plotter
 ~lin=60;
-~shad=0.25;
+~shad=0.33;
 ~do=1;
-~clp=3;
-~da=500;
+~r=400;
+~clp1=2;
+~clp2=2;
+~clp3=2;
+~da=300;
+~clpz=1000;
+~scale=2000;
+~rox=0;
+~roy=0;
+~roz=0;
 //~harm=1;
 ({
 var w,u,size=1000,diameter=300,n=0,m=0,k=0;
@@ -26,6 +35,7 @@ diameter=~da;
 ~point_cloud=[];
 d_o=~do;
 wave=~shad;
+diameter=~r	;
 dist=~dist1*diameter;
 lined=~lin;
 n=0;
@@ -33,23 +43,31 @@ n=0;
 
 (~verticef).do {
 
-rot=Spherical(1,~azr.[n],~elr.[n]);
-rot=rot.rotateYZ(~controlBus_1.getSynchronous.reciprocal/2pi).rotateXZ(~controlBus_2.getSynchronous.reciprocal/2pi).rotateXY(~controlBus_3.getSynchronous.reciprocal/2pi);
+//rot=Spherical(1,~azr.[n],~elr.[n]);
+rot=Cartesian(~cx.[n],~cy.[n],~cz.[n]);
+//rot=rot.rotateYZ(~controlBus_1.getSynchronous.reciprocal/2pi/~scale).rotateXZ(~controlBus_2.getSynchronous.reciprocal/2pi/~scale).rotateXY(~controlBus_3.getSynchronous.reciprocal/2pi/~scale);
 
-x = (~harm*cos(rot.phi)*cos(rot.theta))+(cos(~harm*rot.phi)*cos(~harm*rot.theta));
-y = (~harm*cos(rot.phi)*sin(rot.theta))+(cos(~harm*rot.phi)*sin(~harm*rot.theta));
-z = (~harm*sin(rot.phi))+(sin(~harm*rot.phi));
+//x = (~harm*cos(rot.phi)*cos(rot.theta))+(cos(~harm*rot.phi)*cos(~harm*rot.theta));
+///y = (~harm*cos(rot.phi)*sin(rot.theta))+(cos(~harm*rot.phi)*sin(~harm*rot.theta));
+//z = (~harm*sin(rot.phi))+(sin(~harm*rot.phi));
 
+px=((~cx.[n]*diameter)*1).clip2(diameter/~clp1);
+py=((~cy.[n]*diameter)*1).clip2(diameter/~clp2);
+pz=((~cz.[n]*diameter)*1).clip2(diameter/~clp3);
 
-px=((~cx.[n]*diameter*~harm.reciprocal)*x).clip2(diameter/~clp);
-py=((~cy.[n]*diameter*~harm.reciprocal)*y).clip2(diameter/~clp);
-pz=((~cz.[n]*diameter*~harm.reciprocal)*z).clip2(diameter/~clp);
+///////use fixed rotations for vanishing points and animated for contnious frame rotation
+// X rotation
+point = Cartesian(px,py,pz).rotateYZ(~rox);
+// Y rotation
+point = point.rotateXZ(~roy);
+// Z rotation
+point = point.rotateXY(~roz);
 
-point = Cartesian(px,py,pz);
+//point = Cartesian(px,py,pz);
 
 //////remaping
-plane=Complex(point.x,point.y);
-cp=Polar(point.z,plane.theta);
+//plane=Complex(point.x,point.y);
+//cp=Polar(point.z,plane.theta);
 cp=point;
 ////////////////////perspective
 perspective = dist / (dist + point.z + (dist/depth));///remove (dist/2) for no depth
@@ -85,4 +103,17 @@ m=m+1;k=k+1
 };
 { while { run } {v.background_(Color.black); v.refresh; (~timbr_dur).wait } }.fork(AppClock);
 w.front;
-}.defer)
+}.defer);
+
+Routine({
+inf.do {
+(
+~rox=(~rox +0.001).wrap(0,2pi);
+~roy=(~roy +0.001).wrap(0,2pi);
+~roz=(~roz +0.001).wrap(0,2pi);
+);
+{v.refresh}.defer;
+(0.01).wait;
+};
+}).play;
+)

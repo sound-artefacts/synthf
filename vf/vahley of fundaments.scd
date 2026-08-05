@@ -627,7 +627,13 @@ point.y = point.y.fold2(250);
 point.z = point.z.fold2(250);
 		)*/
 
-///rotations;
+///////use fixed rotations for vanishing points and animated for contnious frame rotation
+// X rotation
+/*point = Cartesian(point.x,point.y,point.z).rotateYZ(rx);
+// Y rotation
+point = Cartesian(point.x,point.y,point.z).rotateXZ(ry);
+// Z rotation
+point = Cartesian(point.x,point.y,point.z).rotateXY(rz);*/
 //////remaping
 plane=Complex(point.x,point.y);
 cp=Polar(point.z,plane.theta);
