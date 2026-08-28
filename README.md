@@ -1,6 +1,4 @@
-Synthf Setup Wizard
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Preferably do not use Headphones, protect your ears. Also localization is mainly wavefield, not binaural, so stereo loudspeakers  as output is recommended.
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////for latest synthf 'vf' Mathlib is required
+ Mathlib is required
 
 ~download and install SuperCollider  https://supercollider.github.io
 
@@ -72,70 +70,6 @@ Synthf Setup Wizard
 
 ~ adjust window size in sc or screen resolution. Window size is 700-1200px by default 
 
-
-
-/////////////////////////////////////////////////// kanal.scd and last startup.scd synthf spat wavefield architecture update
-
-~ audible n(3) * spat channels
-every localization vector source is three speakers (three channels xyz) wavefiled. These threefold sets can be spatialized in triangle configuration on a geodesic setup. Eg. a geodesic octahedron (order 2) 4 triangles per side (18 vertices,32 faces),  https://en.wikipedia.org/wiki/List_of_geodesic_polyhedra_and_Goldberg_polyhedra#/media/File%3ATetrakis_cuboctahedron.png,  could host max 5 (simplex) independent static spat sources, or 5(4) sources on an interchanging multichannel expansion (panned) on 32 virtual source sets.
-
-First proof of concept 'Geodesic Octahedron' InSonic 2015
-
-///if the intention is to use stereo sets instead of 3d wavefield sources, leave z channel unpluged and output only sets of x,y channel pairs. eg [0,1,3,4] for stereo 2d wavefield
-//////////////
-
-////////////
-
-//////////////////
-
-
-
-///////////////vfs synth on vf folder is a more complex synth
-
-it utilizes a more comlex musical sequencers, two synth instrument instances, wavefield and spat compression
-,different settings according to code variation, and other like inteference collision between the two instrument instances and the melodic variation.
-
-Knobs are as follows:
-
-tempo: temoclock of sequencer, slow to fast (1/16)
-
-rz: rotation of timbral information tensor around the z axis, slow to fast
-
-s_range: tonal range of scale tone factor (dorian or other, Scale.directory)
-
-t_range: tonal range of temperament (16256 cents per octave)
-
-overdrive: rectifier distortion range, low to high
-
-drive: oscilator resonance filter, sine to saw
-
-comp: compressor setting, high lowend cutt on small speaker to low and large
-
-attack: percussve envelope  attacek time
-
-decay: percussve decay  attacek time
-
-rx: rotation of timbral information tensor around the x axis, slow to fast
-
-ry: rotation of timbral information tensor around the y axis, slow to fast
-
-fund: fundamental frequency scaler, octave temperament on power of two * 9/8
-
-gain: total amp level (envelope)
-
-revroom: reverb room size, none to large
-
-fmix: mix for distortion pwm and panner (reverb is mixed via distance)
-
-fuse1: coordinates of timbral data tensor, fuse to less coordinates (interferance collision)
-
-fuse2: coordinates of timbral data tensor, fuse to less coordinates, (fuse to one coordinate if fuse1 is max)
-
-orange: distortion limit
-
-harm: spherical harmonic on timbral data tensor and cardioid
-
-dist: perspective distance (extreme fisheye to fronal isometric perspective)
 
 //////
 synthf interface cover image
