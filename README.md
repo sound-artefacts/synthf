@@ -1,14 +1,7 @@
- Mathlib is required
+ may use Mathlib if required
+~MathLib library, make sure your pc has access to quarks, install git for mac and similarly for windows. Install MathLib by selecting on the SuperCollider IDE options panel Language then Quarks and look for MathLib, after installing it close and reopen SuperCollider. Synthf will not execute if MathLib is not installed and compiled.
 
-~download and install SuperCollider  https://supercollider.github.io
-
-~project synthf builds against SuperCollider 3.13.0, but you may install the latest build
-
-//////////////////////////////////// if you install any of the builds on folders: sculpture, wavefield, multichannel expansion, compiling also Mathlib to SuperCollider is required
-
-~MathLib library Quark is required, make sure your pc has access to quarks, install git for mac and similarly for windows. Install MathLib by selecting on the SuperCollider IDE options panel Language then Quarks and look for MathLib, after installing it close and reopen SuperCollider. Synthf will not execute if MathLib is not installed and compiled.
-
-////////////////////////////////////////////////////for startup.scd Mathlib is not required/
+///////////////////////////////////
 
 ~download startup.scd and image1.jpg or choose an image of your own liking to load to the gui interface
 
